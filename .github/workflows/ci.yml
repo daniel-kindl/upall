@@ -109,6 +109,12 @@ jobs:
 
       # Enforces the godoc rule from adr/0007 via revive's `exported` rule,
       # configured in .golangci.yml.
+      #
+      # This action from v7 onward supports golangci-lint v2 ONLY, and v8+
+      # requires >= 2.1.0. So .golangci.yml must use the v2 schema, which is not
+      # compatible with v1 and is not what most examples online still show.
+      # The action validates the config against its JSONSchema by default, so a
+      # v1 file fails loudly here rather than silently linting nothing.
       - uses: golangci/golangci-lint-action@v9
         with:
           version: latest
