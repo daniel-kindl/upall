@@ -72,8 +72,8 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      # Fyne needs X11 and OpenGL headers to build on Linux. Build-time only —
-      # the shipped binary needs nothing. See adr/0005.
+      # Fyne needs X11 and OpenGL headers to build on Linux. Build time only.
+      # The shipped binary needs nothing. See adr/0005.
       - name: Install GUI build dependencies
         if: runner.os == 'Linux'
         run: |

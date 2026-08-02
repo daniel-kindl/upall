@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Not for security vulnerabilities.** Report those privately — see
+        **Not for security vulnerabilities.** Report those privately. See
         [SECURITY.md](https://github.com/daniel-kindl/upall/blob/main/SECURITY.md).
 
   - type: textarea
@@ -44,7 +44,7 @@ body:
       label: Output
       description: >
         Relevant output. Add `--json` if it helps. Check for anything private
-        before pasting — package lists can reveal more than you expect.
+        before pasting, because package lists can reveal more than you expect.
       render: shell
 
   - type: input

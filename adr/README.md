@@ -1,8 +1,8 @@
 # Architecture Decision Records
 
 An ADR records a decision that was hard to make, together with what it cost and what
-was given up. It exists so that whoever meets the decision next — months later, with
-no memory of the discussion — can tell the difference between a considered choice and
+was given up. It exists so that whoever meets the decision next, months later and with
+no memory of the discussion, can tell the difference between a considered choice and
 an accident.
 
 The important part of an ADR is not the decision. It is the **alternatives that were
@@ -13,23 +13,24 @@ the code and see what was tried, considered, and abandoned for good reason.
 
 Write an ADR when a decision:
 
-- **would be expensive to reverse** — data formats, public interfaces, the choice of a
-  UI toolkit;
-- **looks wrong from the outside** — where a reasonable person would ask "why on earth
-  did they do it that way";
-- **rules something out** — a non-goal, a constraint, a thing deliberately not built;
-- **traded something real away** — every good decision here cost something, and the
-  cost is the part that gets forgotten first.
+- would be expensive to reverse, such as data formats, public interfaces, or the
+  choice of a UI toolkit;
+- looks wrong from the outside, where a reasonable person would ask why on earth it
+  was done that way;
+- rules something out, such as a non-goal, a constraint, or a thing deliberately not
+  built;
+- traded something real away. Every good decision here cost something, and the cost is
+  the part that gets forgotten first.
 
 You do not need one for reversible, local choices. Which sort algorithm, how a
-function is named, whether to extract a helper — that is what code review is for.
+function is named, whether to extract a helper: that is what code review is for.
 
 If you are unsure, ask whether a future contributor might undo this without knowing
 what it was protecting. If yes, write the ADR.
 
 ## How they work
 
-- Numbered sequentially, four digits, never reused: `0001`, `0002`, …
+- Numbered sequentially, four digits, never reused: `0001`, `0002`, and so on.
 - Filename is `NNNN-short-kebab-case-title.md`.
 - Copy [`0000-template.md`](0000-template.md) to start.
 - **ADRs are immutable once accepted.** You do not edit a decision to reflect a change
@@ -41,9 +42,9 @@ what it was protecting. If yes, write the ADR.
 
 | Status | Meaning |
 |---|---|
-| **Proposed** | Written, under discussion, not yet in effect |
-| **Accepted** | In effect. The codebase is expected to comply. |
-| **Superseded by NNNN** | Replaced. Kept for the history, not the guidance. |
+| Proposed | Written, under discussion, not yet in effect |
+| Accepted | In effect. The codebase is expected to comply. |
+| Superseded by NNNN | Replaced. Kept for the history, not the guidance. |
 
 ## Index
 
@@ -57,13 +58,13 @@ what it was protecting. If yes, write the ADR.
 | [0006](0006-branching-model-and-release-channels.md) | Branching model and release channels | Accepted | 2026-08-02 |
 | [0007](0007-godoc-as-reference-documentation.md) | Godoc as the reference documentation | Accepted | 2026-08-02 |
 
-## A note on 0001–0007
+## A note on 0001 to 0007
 
-These seven were all written before a line of code existed, which is unusual and
-worth explaining. This project is worked on in bursts with long gaps, by contributors
+These seven were all written before a line of code existed, which is unusual and worth
+explaining. This project is worked on in bursts with long gaps, by contributors
 starting cold each time. Decisions made and forgotten get silently re-litigated,
-usually badly and usually by re-deriving only the arguments that are easy to
+usually badly, and usually by re-deriving only the arguments that are easy to
 re-derive.
 
-Front-loading them trades some ceremony now for not having that argument later.
-Later ADRs will arrive one at a time, the normal way.
+Front-loading them trades some ceremony now for not having that argument later. Later
+ADRs will arrive one at a time, the normal way.

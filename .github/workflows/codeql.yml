@@ -1,8 +1,8 @@
 name: CodeQL
 
 # Paths filters keep this quiet until Go code exists. The weekly schedule
-# ignores paths filters entirely, so the `guard` job below handles that case —
-# without it, scheduled runs fail with "no source code found" until M1.
+# ignores paths filters entirely, so the `guard` job below handles that case.
+# Without it, scheduled runs fail with "no source code found" until M1.
 on:
   push:
     branches: [main, dev]
@@ -45,7 +45,7 @@ jobs:
             echo "has_go=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_go=false" >> "$GITHUB_OUTPUT"
-            echo "No Go source yet — skipping analysis. Expected before M1."
+            echo "No Go source yet, skipping analysis. Expected before M1."
           fi
 
   analyze:

@@ -1,6 +1,6 @@
 <!--
 PRs go to `dev`, never to `main`. A PR targeting `main` will be closed rather than
-retargeted — see AGENTS.md#branching.
+retargeted. See AGENTS.md#branching.
 -->
 
 ## What this changes
@@ -13,7 +13,8 @@ retargeted — see AGENTS.md#branching.
 Which ROADMAP acceptance criterion does this advance? Quote it, and tick its box in
 docs/ROADMAP.md in this PR.
 
-If it advances none — a bug fix, a dependency bump — say so and delete the rest.
+If it advances none, say so and delete the rest. A bug fix or a dependency bump does
+not need one.
 -->
 
 - Milestone:
@@ -35,9 +36,9 @@ paragraph here.
       a breaking change carries `!` or a `BREAKING CHANGE:` footer.
 - [ ] One thing per PR. Refactors are not mixed with behavior changes.
 - [ ] Tests are in this PR, not a follow-up.
-- [ ] No test invokes a real package manager — `internal/exec` is faked.
+- [ ] No test invokes a real package manager. `internal/exec` is faked.
 - [ ] Every exported identifier added has a doc comment that says something useful.
-- [ ] Nothing describing one package's internals was added to `docs/` — that goes in
+- [ ] Nothing describing one package's internals was added to `docs/`. That goes in
       its `doc.go`.
 - [ ] Any subprocess is invoked with an argv array, never a shell string.
 - [ ] Platform-specific code is behind build tags, not `runtime.GOOS` branches.
