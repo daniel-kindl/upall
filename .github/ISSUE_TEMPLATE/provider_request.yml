@@ -1,0 +1,103 @@
+name: Provider request
+description: Ask for support for a package manager or update mechanism
+labels: ["provider"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Most providers are a TOML manifest and a test, with no Go code involved.
+        The details below are almost the whole implementation — filling them in
+        carefully is most of the work, and makes it very likely someone picks
+        this up.
+
+        Best of all, send a pull request. See
+        [CONTRIBUTING.md](https://github.com/daniel-kindl/upall/blob/main/CONTRIBUTING.md#adding-a-provider).
+
+  - type: input
+    id: name
+    attributes:
+      label: Tool
+      placeholder: "zypper, mise, brew, ..."
+    validations:
+      required: true
+
+  - type: input
+    id: homepage
+    attributes:
+      label: Homepage or documentation
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Platforms
+      multiple: true
+      options:
+        - Windows
+        - Linux
+        - macOS
+    validations:
+      required: true
+
+  - type: input
+    id: detect
+    attributes:
+      label: Detection command
+      description: How to tell whether it is installed. Usually a version flag.
+      placeholder: "zypper --version"
+    validations:
+      required: true
+
+  - type: input
+    id: plan
+    attributes:
+      label: List-updates command
+      description: >
+        Must be read-only. If listing updates changes anything, say so — that
+        needs handling differently.
+      placeholder: "zypper list-updates"
+    validations:
+      required: true
+
+  - type: input
+    id: apply
+    attributes:
+      label: Apply command
+      description: Non-interactive. Include whatever flag suppresses prompts.
+      placeholder: "zypper --non-interactive update"
+    validations:
+      required: true
+
+  - type: textarea
+    id: sample
+    attributes:
+      label: Real output from the list command
+      description: >
+        Paste exactly what it printed, unedited. This becomes the parser fixture,
+        so invented or tidied-up output is worse than none. Include the
+        nothing-to-update case too if you have it.
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: elevation
+    attributes:
+      label: Does applying need admin or root?
+      options:
+        - "Yes"
+        - "No"
+        - "Sometimes — explain below"
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything unusual
+      description: >
+        Locks, reboots, interactive prompts that resist suppression, output that
+        changes with locale or terminal width, exit codes that do not mean what
+        they appear to. This is where providers turn out to be harder than they
+        look.

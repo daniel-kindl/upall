@@ -1,0 +1,106 @@
+name: Bug report
+description: Something behaves differently than it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Not for security vulnerabilities.** Report those privately — see
+        [SECURITY.md](https://github.com/daniel-kindl/upall/blob/main/SECURITY.md).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, and what upall did instead of what you expected.
+      placeholder: |
+        Ran `upall apply --yes`. The apt provider reported success, but the
+        packages were not upgraded.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands, in order.
+      placeholder: |
+        1. `upall plan`
+        2. `upall apply --yes`
+        3. `apt list --upgradable` still lists the same packages
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: >
+        Relevant output. Add `--json` if it helps. Check for anything private
+        before pasting — package lists can reveal more than you expect.
+      render: shell
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: >
+        `upall version`. If you built it yourself, the commit SHA. There are no
+        releases yet, so this will usually be a SHA.
+      placeholder: "v0.1.0-dev.3, or 4f2a1c9"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os-detail
+    attributes:
+      label: OS version or distribution
+      placeholder: "Windows 11 24H2, or Ubuntu 24.04, or Arch"
+    validations:
+      required: true
+
+  - type: input
+    id: provider
+    attributes:
+      label: Provider
+      description: Which provider is involved, if it is specific to one.
+      placeholder: "apt, winget, docker, ..."
+
+  - type: dropdown
+    id: interface
+    attributes:
+      label: Where
+      options:
+        - CLI (upall)
+        - GUI (upall-gui)
+        - Both
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues for this.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

@@ -1,0 +1,87 @@
+name: CodeQL
+
+# Paths filters keep this quiet until Go code exists. The weekly schedule
+# ignores paths filters entirely, so the `guard` job below handles that case —
+# without it, scheduled runs fail with "no source code found" until M1.
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+      - ".github/workflows/codeql.yml"
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+      - ".github/workflows/codeql.yml"
+  schedule:
+    # Mondays, 06:00 UTC. Catches newly published advisories against code that
+    # has not changed.
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    name: check for Go source
+    runs-on: ubuntu-latest
+    outputs:
+      has_go: ${{ steps.check.outputs.has_go }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        shell: bash
+        run: |
+          if [ -n "$(find . -path ./.git -prune -o -name '*.go' -print -quit)" ]; then
+            echo "has_go=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_go=false" >> "$GITHUB_OUTPUT"
+            echo "No Go source yet — skipping analysis. Expected before M1."
+          fi
+
+  analyze:
+    name: analyze
+    needs: guard
+    if: needs.guard.outputs.has_go == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # Autobuild compiles the whole module, including the Fyne GUI, so the
+      # same build-time headers CI needs are needed here.
+      - name: Install GUI build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-dev xorg-dev
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go
+          queries: security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:go"

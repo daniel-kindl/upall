@@ -1,0 +1,15 @@
+* text=auto eol=lf
+
+# Binary assets: never normalize, never diff as text.
+*.png binary
+*.ico binary
+*.icns binary
+*.jpg binary
+*.gif binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary

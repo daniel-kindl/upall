@@ -1,0 +1,43 @@
+# Build output
+/dist/
+/build/
+/bin/
+upall
+upall.exe
+upall-gui
+upall-gui.exe
+
+# Go
+*.test
+*.out
+*.prof
+coverage.txt
+coverage.html
+vendor/
+go.work
+go.work.sum
+
+# Fyne packaging artifacts
+fyne-cross/
+*.app/
+*.dmg
+*.msi
+*.tar.xz
+
+# Local configuration and run data, never committed
+.env
+.env.local
+*.local.toml
+
+# Editors and IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

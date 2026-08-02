@@ -1,0 +1,59 @@
+name: Feature request
+description: Suggest a capability upall does not have
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Two things worth checking first, because they save everyone time:
+
+        - [ROADMAP.md](https://github.com/daniel-kindl/upall/blob/main/docs/ROADMAP.md)
+          — it may already be planned, or deliberately deferred with a stated trigger.
+        - [The decision records](https://github.com/daniel-kindl/upall/blob/main/adr/README.md)
+          — it may have been considered and rejected, with the reasoning written down.
+
+        If a decision record rejected it and you disagree, say so directly and
+        engage with the argument that is already there. That is a legitimate
+        conversation, not a closed door.
+
+        **To request support for a package manager, use the provider request
+        template instead.**
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: >
+        What are you trying to do that upall makes hard or impossible? Describe
+        the situation, not the solution — the best fix is often not the one that
+        first comes to mind.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+      description: How you imagine it working, including the command or interface.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do now instead
+      description: The workaround, if there is one, and why it is unsatisfying.
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      description: >
+        upall has explicit non-goals. It is not a package manager, not
+        configuration management, has no rollback, and does not do scheduling or
+        remote hosts. These are recorded in ARCHITECTURE.md.
+      options:
+        - label: I have read the non-goals and this is not one of them, or I am arguing that one should change.
+          required: true
+        - label: I checked the roadmap and decision records.
+          required: true

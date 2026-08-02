@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/daniel-kindl/upall/security/advisories/new
+    about: Report privately. Never open a public issue for a vulnerability.
+  - name: Question or idea
+    url: https://github.com/daniel-kindl/upall/discussions
+    about: Open-ended questions and proposals that are not yet a concrete request.
+  - name: What is being built next
+    url: https://github.com/daniel-kindl/upall/blob/main/docs/ROADMAP.md
+    about: The roadmap, including what is deliberately deferred and why.

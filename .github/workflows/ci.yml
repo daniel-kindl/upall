@@ -1,0 +1,89 @@
+name: CI
+
+# The paths filter means a documentation-only commit triggers nothing, which is
+# why this file can exist before any Go code does. It starts working by itself
+# once go.mod lands at M1.
+#
+# The two path lists are duplicated on purpose: GitHub Actions does not support
+# YAML anchors. Keep them in sync.
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+      - ".golangci.yml"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+      - ".golangci.yml"
+      - ".github/workflows/ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Never cancel the other platform on one failure. Knowing a change breaks
+      # Windows but not Linux is most of the diagnosis.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # Fyne needs X11 and OpenGL headers to build on Linux. Build-time only —
+      # the shipped binary needs nothing. See adr/0005.
+      - name: Install GUI build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-dev xorg-dev
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race ./...
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install GUI build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-dev xorg-dev
+
+      # Enforces the godoc rule from adr/0007 via revive's `exported` rule,
+      # configured in .golangci.yml.
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest

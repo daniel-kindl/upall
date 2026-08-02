@@ -1,0 +1,46 @@
+version: 2
+
+# PRs target `dev`, never `main` — same rule as every other contribution.
+# See AGENTS.md#branching and adr/0006-branching-model-and-release-channels.md.
+#
+# The `gomod` entry is inert until go.mod exists at M1, then starts working on
+# its own. Nothing to remember to enable.
+
+updates:
+  - package-ecosystem: gomod
+    directory: "/"
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(deps)"
+    labels:
+      - dependencies
+    groups:
+      # One PR for routine patch and minor bumps. Majors arrive separately,
+      # because those need reading rather than merging.
+      go-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci(actions)"
+    labels:
+      - dependencies
+      - ci
+    groups:
+      actions-all:
+        patterns:
+          - "*"
