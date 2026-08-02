@@ -57,11 +57,17 @@ scaffolding that lights up at M1.
 
 **Landing** (needs network, done once the above is reviewed):
 
-- [ ] M0 commit on `main`, `dev` branched from it, both pushed.
-- [ ] Branch protection on `main` and `dev`: no direct pushes, PR required.
-- [ ] Repo description and topics set.
-- [ ] `gh api repos/daniel-kindl/upall/community/profile` reports the community
-      checklist complete.
+- [x] M0 commit on `main`, `dev` branched from it, both pushed.
+- [x] Branch protection on `main` and `dev`: no direct pushes, PR required.
+- [x] Repo description and topics set.
+- [x] `gh api repos/daniel-kindl/upall/community/profile` reports the community
+      checklist complete — 100%.
+
+> **Bootstrap note.** This commit was pushed directly to `main` and `dev` before
+> branch protection was enabled, because protecting the branches first would have
+> blocked the commit that records the protection. It is the only commit exempt from
+> [AGENTS.md](../AGENTS.md#branching). Every commit after it goes through a pull
+> request into `dev`.
 
 ---
 
