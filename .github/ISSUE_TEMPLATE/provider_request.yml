@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         Most providers are a TOML manifest and a test, with no Go code involved.
-        The details below are almost the whole implementation — filling them in
+        The details below are almost the whole implementation. Filling them in
         carefully is most of the work, and makes it very likely someone picks
         this up.
 
@@ -54,8 +54,8 @@ body:
     attributes:
       label: List-updates command
       description: >
-        Must be read-only. If listing updates changes anything, say so — that
-        needs handling differently.
+        Must be read-only. If listing updates changes anything, say so, because
+        that needs handling differently.
       placeholder: "zypper list-updates"
     validations:
       required: true
@@ -88,7 +88,7 @@ body:
       options:
         - "Yes"
         - "No"
-        - "Sometimes — explain below"
+        - "Sometimes (explain below)"
     validations:
       required: true
 

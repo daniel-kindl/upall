@@ -7,10 +7,10 @@ body:
       value: |
         Two things worth checking first, because they save everyone time:
 
-        - [ROADMAP.md](https://github.com/daniel-kindl/upall/blob/main/docs/ROADMAP.md)
-          — it may already be planned, or deliberately deferred with a stated trigger.
-        - [The decision records](https://github.com/daniel-kindl/upall/blob/main/adr/README.md)
-          — it may have been considered and rejected, with the reasoning written down.
+        - [ROADMAP.md](https://github.com/daniel-kindl/upall/blob/main/docs/ROADMAP.md).
+          It may already be planned, or deliberately deferred with a stated trigger.
+        - [The decision records](https://github.com/daniel-kindl/upall/blob/main/adr/README.md).
+          It may have been considered and rejected, with the reasoning written down.
 
         If a decision record rejected it and you disagree, say so directly and
         engage with the argument that is already there. That is a legitimate
@@ -25,8 +25,8 @@ body:
       label: The problem
       description: >
         What are you trying to do that upall makes hard or impossible? Describe
-        the situation, not the solution — the best fix is often not the one that
-        first comes to mind.
+        the situation rather than the solution, because the best fix is often not
+        the one that first comes to mind.
     validations:
       required: true
 
