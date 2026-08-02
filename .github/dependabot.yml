@@ -1,6 +1,6 @@
 version: 2
 
-# PRs target `dev`, never `main` — same rule as every other contribution.
+# PRs target `dev`, never `main`, the same rule as every other contribution.
 # See AGENTS.md#branching and adr/0006-branching-model-and-release-channels.md.
 #
 # The `gomod` entry is inert until go.mod exists at M1, then starts working on

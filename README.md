@@ -25,15 +25,15 @@ Scanning 6 providers...
 Apply 20 updates? [y/N]
 ```
 
-- **One command.** Instead of six, in whatever order you remember them.
-- **Plan first.** Nothing changes until you have seen what will change and said yes.
-- **Unprivileged by default.** Only the providers that genuinely need admin get it,
-  and the plan tells you which ones before you answer.
-- **No prerequisites.** A single downloaded binary runs. No runtime, no interpreter,
-  no libraries.
-- **Missing tools are fine.** Providers you do not have are skipped, not failed.
-- **Honest about failure.** One provider failing does not stop the others, and the
-  summary tells you exactly what broke.
+One command instead of six, in whatever order you remember them. Nothing changes
+until you have seen what will change and said yes.
+
+It runs unprivileged by default. Only the providers that genuinely need admin get it,
+and the plan tells you which ones before you answer. Providers you do not have
+installed are skipped rather than failed, because machines differ. One provider
+failing does not stop the others, and the summary tells you exactly what broke.
+
+A single downloaded binary runs it. No runtime, no interpreter, no libraries.
 
 A desktop client, `upall-gui`, ships alongside the CLI with the same capabilities.
 
@@ -47,18 +47,22 @@ A desktop client, `upall-gui`, ships alongside the CLI with the same capabilitie
 | Windows Update | snap | |
 | | flatpak | |
 
-macOS is planned after 1.0. Language toolchain managers — npm, pipx, cargo, rustup —
-are planned but deferred; see the Post-1.0 section of the roadmap.
+macOS is planned after 1.0. Language toolchain managers such as npm, pipx, cargo, and
+rustup are planned but deferred; see the Post-1.0 section of the roadmap.
 
 ## What it is not
 
-- **Not a package manager.** It drives the ones you already have. It never installs
-  software that was not already there.
-- **Not configuration management.** No desired state, no inventory, no convergence.
-- **No rollback.** The underlying tools vary too much for that to be reliable. Every
-  run is journaled so you can undo things deliberately.
-- **No daemon, no scheduling, no remote hosts.** systemd timers, Task Scheduler, and
-  Ansible already exist and are good.
+Not a package manager. It drives the ones you already have, and never installs
+software that was not already there.
+
+Not configuration management. There is no desired state, no inventory, and no
+convergence.
+
+There is no rollback, because the underlying tools vary too much for that to be
+reliable. Every run is journaled so you can undo things deliberately.
+
+No daemon, no scheduling, and no remote hosts. systemd timers, Task Scheduler, and
+Ansible already exist and are good at this.
 
 ## Documentation
 
@@ -78,7 +82,7 @@ code and is read with `go doc`; see
 ## Contributing
 
 Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md), and read
-[adr/](adr/README.md) before proposing anything that reverses a settled decision — the
+[adr/](adr/README.md) before proposing anything that reverses a settled decision. The
 reasoning and the trade-offs are recorded there.
 
 Adding a provider is usually a TOML file and a test.

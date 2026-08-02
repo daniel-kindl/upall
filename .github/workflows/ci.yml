@@ -32,8 +32,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # The paths filter includes this workflow file, so editing CI runs CI. Before
+  # M1 that means a Go build with no go.mod, which fails. This guard makes the
+  # Go jobs skip instead, and disappears from the critical path the moment any
+  # .go file exists. Mirrors the same job in codeql.yml.
+  guard:
+    name: check for Go source
+    runs-on: ubuntu-latest
+    outputs:
+      has_go: ${{ steps.check.outputs.has_go }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        shell: bash
+        run: |
+          if [ -n "$(find . -path ./.git -prune -o -name '*.go' -print -quit)" ]; then
+            echo "has_go=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_go=false" >> "$GITHUB_OUTPUT"
+            echo "No Go source yet, skipping build and test. Expected before M1."
+          fi
+
   test:
     name: test (${{ matrix.os }})
+    needs: guard
+    if: needs.guard.outputs.has_go == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       # Never cancel the other platform on one failure. Knowing a change breaks
@@ -49,8 +72,8 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      # Fyne needs X11 and OpenGL headers to build on Linux. Build-time only —
-      # the shipped binary needs nothing. See adr/0005.
+      # Fyne needs X11 and OpenGL headers to build on Linux. Build time only.
+      # The shipped binary needs nothing. See adr/0005.
       - name: Install GUI build dependencies
         if: runner.os == 'Linux'
         run: |
@@ -68,6 +91,8 @@ jobs:
 
   lint:
     name: lint
+    needs: guard
+    if: needs.guard.outputs.has_go == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

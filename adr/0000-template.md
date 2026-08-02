@@ -1,4 +1,4 @@
-# NNNN — Short title in the imperative or as a noun phrase
+# NNNN. Short title in the imperative or as a noun phrase
 
 **Status:** Proposed | Accepted | Superseded by [NNNN](NNNN-title.md)
 **Date:** YYYY-MM-DD
@@ -10,7 +10,7 @@ play: constraints, requirements, things already committed to elsewhere. Someone 
 no memory of the discussion should be able to read this section and feel the tension
 before seeing how it was resolved.
 
-Write it in the present tense, as a description of the situation — not a narrative of
+Write it in the present tense, as a description of the situation, not a narrative of
 who said what.
 
 ## Decision
@@ -23,8 +23,8 @@ decided that elevation requirements would be declared".
 
 ## Consequences
 
-What is now true as a result — the good and the bad in the same list, without
-flattering the decision. Every real decision costs something; if this section contains
+What is now true as a result, the good and the bad in the same list, without
+flattering the decision. Every real decision costs something. If this section contains
 only benefits, the decision was not hard and probably did not need an ADR.
 
 Include here:
@@ -32,9 +32,9 @@ Include here:
 - What becomes easy.
 - What becomes hard or impossible.
 - What ongoing obligation this creates.
-- **The revisit trigger, if the decision is deliberately provisional** — the specific
-  condition that should cause someone to reopen this. Write a condition you would
-  recognize on sight, not "when it becomes a problem".
+- The revisit trigger, if the decision is deliberately provisional. Write the specific
+  condition that should cause someone to reopen this, phrased so you would recognize
+  it on sight rather than as "when it becomes a problem".
 
 ## Alternatives considered
 
@@ -42,16 +42,16 @@ The most valuable section. For each option seriously weighed:
 
 ### Option name
 
-What it was, and **why it was rejected**. Be concrete and fair — state the real
+What it was, and **why it was rejected**. Be concrete and fair. State the real
 argument for it, not a weak version that makes the chosen option look better. If an
-alternative was rejected for a reason that might not hold forever, say so here; that
+alternative was rejected for a reason that might not hold forever, say so here. That
 is the sentence a future reader needs most.
 
 ---
 
 <!--
 Worked example, to fix the tone and level of detail. This is a hypothetical decision,
-not a real one — delete this whole comment block when you copy the template.
+not a real one. Delete this whole comment block when you copy the template.
 
 ## Context
 
@@ -74,7 +74,7 @@ place. Rotation happens by size, oldest file discarded.
 - Querying means scanning. `upall history` stays fast because it reads from the end
   and stops, but anything analytical over the full history would be slow.
 - Rotation loses old runs outright. There is no archive.
-- Revisit if history grows a query surface beyond "show me recent runs" — at that
+- Revisit if history grows a query surface beyond "show me recent runs". At that
   point a real embedded database earns its weight.
 
 ## Alternatives considered
