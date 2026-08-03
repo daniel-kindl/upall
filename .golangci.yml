@@ -1,0 +1,39 @@
+# golangci-lint configuration.
+#
+# This file uses the v2 schema. That is not optional: golangci-lint-action v7
+# and later support v2 only, v8 and later require >= 2.1.0, and the action
+# validates this file against its JSONSchema before running. Most examples
+# online still show v1, which fails here loudly rather than linting nothing.
+#
+# Verify changes with `golangci-lint config verify` before pushing.
+version: "2"
+
+linters:
+  # The five linters golangci-lint enables by default: errcheck, govet,
+  # ineffassign, staticcheck, unused. Named explicitly so that a future
+  # golangci-lint changing its own defaults is a decision here rather than a
+  # surprise in CI.
+  default: standard
+
+  enable:
+    - revive
+
+  settings:
+    revive:
+      # revive runs only the rules named here, so this list is the whole of
+      # what it checks.
+      rules:
+        # The enforcement half of adr/0007: godoc is the reference
+        # documentation for this project, so a missing or malformed comment on
+        # an exported identifier fails the build rather than waiting for a
+        # reviewer to notice. revive cannot tell whether a comment says
+        # anything useful, which is what AGENTS.md is for.
+        - name: exported
+
+        # AGENTS.md requires a package comment on every package, which is what
+        # `go doc ./internal/<pkg>` prints first.
+        - name: package-comments
+
+  exclusions:
+    # Generated files are not ours to document.
+    generated: lax

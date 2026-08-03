@@ -1,11 +1,15 @@
-# Build output
+# Build output.
+#
+# The binary names must stay anchored with a leading slash. `go build ./cmd/...`
+# drops them in the repo root, and an unanchored `upall` would also match the
+# directory cmd/upall/, quietly excluding the entrypoints from every commit.
 /dist/
 /build/
 /bin/
-upall
-upall.exe
-upall-gui
-upall-gui.exe
+/upall
+/upall.exe
+/upall-gui
+/upall-gui.exe
 
 # Go
 *.test

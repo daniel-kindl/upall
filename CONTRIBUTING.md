@@ -2,10 +2,10 @@
 
 Thanks for looking. This file covers getting set up and getting a change merged.
 
-> **The project is at milestone M0**, meaning design documents and no application code
-> yet. The most useful contribution right now is a second opinion on
-> [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) or the
-> [decision records](adr/README.md), before any of it is built on.
+> **The project is at milestone M1**, which builds the skeleton: both binaries, the
+> version command, and the automated checks. Nothing updates anything yet. See
+> [docs/ROADMAP.md](docs/ROADMAP.md) for the first unchecked box, which is always the
+> current work.
 
 ## Before you start
 

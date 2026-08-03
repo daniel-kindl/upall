@@ -57,6 +57,7 @@ what it was protecting. If yes, write the ADR.
 | [0005](0005-fyne-for-the-gui-client.md) | Fyne for the GUI client | Accepted | 2026-08-02 |
 | [0006](0006-branching-model-and-release-channels.md) | Branching model and release channels | Accepted | 2026-08-02 |
 | [0007](0007-godoc-as-reference-documentation.md) | Godoc as the reference documentation | Accepted | 2026-08-02 |
+| [0008](0008-cobra-for-the-cli.md) | Cobra for the command-line interface | Accepted | 2026-08-03 |
 
 ## A note on 0001 to 0007
 
