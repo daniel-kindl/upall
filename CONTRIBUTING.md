@@ -2,10 +2,10 @@
 
 Thanks for looking. This file covers getting set up and getting a change merged.
 
-> **The project is at milestone M1**, which builds the skeleton: both binaries, the
-> version command, and the automated checks. Nothing updates anything yet. See
-> [docs/ROADMAP.md](docs/ROADMAP.md) for the first unchecked box, which is always the
-> current work.
+> **M1 is complete**: both binaries build on Windows and Linux, `upall version` works,
+> and the checks run on every pull request. Nothing updates anything yet. The current
+> work is M2, the core domain types. See [docs/ROADMAP.md](docs/ROADMAP.md), where the
+> first unchecked box is always what to do next.
 
 ## Before you start
 

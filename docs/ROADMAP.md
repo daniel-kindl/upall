@@ -95,10 +95,15 @@ scaffolding that lights up at M1.
       **golangci-lint v2 schema**, because `golangci-lint-action` v7 and later
       support v2 only. Most examples online still show the incompatible v1 syntax.
 - [x] `go vet ./...`, `golangci-lint run`, and `go test ./...` all pass.
-- [ ] CI runs build, vet, lint, and test on `windows-latest` and `ubuntu-latest` for
-      every PR, and the matrix is required for merge.
-- [ ] CodeQL runs on PRs and weekly, and reports no errors.
-- [ ] Dependabot opens PRs for `gomod` and `github-actions`.
+- [x] CI runs build, vet, lint, and test on `windows-latest` and `ubuntu-latest` for
+      every PR, and the matrix is required for merge. `lint`, `test (ubuntu-latest)`,
+      and `test (windows-latest)` are required status checks on both `dev` and `main`.
+- [x] CodeQL runs on PRs and weekly, and reports no errors. Ran clean on #6, #8, and
+      #9; the Monday cron is in `codeql.yml`.
+- [x] Dependabot opens PRs for `gomod` and `github-actions`. The `github-actions`
+      ecosystem is proven by #1. The `gomod` entry became live when `go.mod` landed,
+      and cannot produce a pull request today because every dependency is already at
+      its newest release. Its first scheduled scan is the Monday after this merge.
 
 ---
 
