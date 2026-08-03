@@ -68,6 +68,7 @@ Ansible already exist and are good at this.
 
 | | |
 |---|---|
+| [docs/PRODUCT.md](docs/PRODUCT.md) | What it is, who each frontend is for, and how it should feel |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How it is built and the rules that hold across it |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | What is built, what is next, what is deliberately deferred |
 | [adr/](adr/README.md) | Decisions already made, and what they cost |
