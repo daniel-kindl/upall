@@ -25,15 +25,21 @@ already was.
 ## Setup
 
 You need the current stable [Go](https://go.dev/dl/) and
-[golangci-lint](https://golangci-lint.run/welcome/install/). Nothing else.
+[golangci-lint](https://golangci-lint.run/welcome/install/). Building the GUI, or
+running the tests with `-race`, also needs a C toolchain; see
+[Building the GUI](#building-the-gui) below.
 
 ```console
 git clone https://github.com/daniel-kindl/upall.git
 cd upall
-go build ./cmd/...
+go build -o bin/ ./cmd/...
 go test ./...
 golangci-lint run
 ```
+
+The `-o bin/` is not decoration. There are two main packages, and given more than one,
+`go build` compiles each and writes none of them: it checks that they build rather than
+producing them. Without `-o` you get a successful command and no binaries.
 
 A plain `go build` is enough for development, including for `upall version`. The
 toolchain stamps the commit, its timestamp, and whether your tree was dirty into every
@@ -41,7 +47,7 @@ binary built inside a repository, so the only thing missing is a version number,
 working tree does not have one:
 
 ```console
-$ ./upall version
+$ ./bin/upall version
 upall dev (2324cc3-dirty, 2026-08-03T14:32:29Z)
 go1.26.5 linux/amd64
 ```
@@ -50,23 +56,39 @@ Release builds supply the number with a linker flag. Nothing needs to type this 
 hand; the release pipeline does it.
 
 ```console
-go build -ldflags "-X github.com/daniel-kindl/upall/internal/buildinfo.version=1.2.3" ./cmd/...
+go build -ldflags "-X github.com/daniel-kindl/upall/internal/buildinfo.version=1.2.3" -o bin/ ./cmd/...
 ```
 
-On Linux, the GUI needs X11 and OpenGL development headers to *build*. Nothing extra is
-needed to *run* it, which is the whole point of
-[ADR-0005](adr/0005-fyne-for-the-gui-client.md).
+### Building the GUI
+
+Fyne renders through OpenGL, which means cgo, so `upall-gui` needs a C toolchain and
+some development headers to *build*. Nothing extra is needed to *run* it, which is the
+whole point of [ADR-0005](adr/0005-fyne-for-the-gui-client.md).
 
 ```console
 # Debian/Ubuntu
-sudo apt install libgl1-mesa-dev xorg-dev
+sudo apt install libgl1-mesa-dev xorg-dev libx11-dev libwayland-dev libxkbcommon-dev
 
 # Fedora
 sudo dnf install libX11-devel libXcursor-devel libXrandr-devel \
-                 libXinerama-devel mesa-libGL-devel libXi-devel libXxf86vm-devel
+                 libXinerama-devel mesa-libGL-devel libXi-devel libXxf86vm-devel \
+                 wayland-devel libxkbcommon-devel
 ```
 
-The CLI has no such requirement on any platform.
+The Wayland packages are needed even on an X11-only desktop. glfw compiles its Wayland
+backend regardless of which display server you will actually run under, so omitting them
+fails the build on a missing `wayland-client-core.h`.
+
+On Windows you need gcc, which the OS does not ship. mingw-w64 works:
+
+```console
+winget install BrechtSanders.WinLibs.POSIX.UCRT
+```
+
+The same toolchain is what `go test -race` needs on Windows, so this is not optional for
+running the test suite either, GUI or no GUI.
+
+The CLI itself has no such requirement on any platform.
 
 ## Finding the documentation
 

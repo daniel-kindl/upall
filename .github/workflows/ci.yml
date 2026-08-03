@@ -57,6 +57,11 @@ jobs:
     needs: guard
     if: needs.guard.outputs.has_go == 'true'
     runs-on: ${{ matrix.os }}
+    # A stuck job otherwise runs until the six-hour default, which wastes a
+    # runner and tells nobody anything. Building Fyne under cgo with a cold
+    # cache is the slow part here, and on Windows it is several minutes, so
+    # this is set well above the honest worst case rather than close to it.
+    timeout-minutes: 30
     strategy:
       # Never cancel the other platform on one failure. Knowing a change breaks
       # Windows but not Linux is most of the diagnosis.
@@ -71,13 +76,18 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      # Fyne needs X11 and OpenGL headers to build on Linux. Build time only.
-      # The shipped binary needs nothing. See adr/0005.
+      # Fyne needs X11, Wayland, and OpenGL headers to build on Linux. Build
+      # time only; the shipped binary needs nothing, which is the whole point
+      # of adr/0005. The Wayland pair is not optional: glfw compiles its
+      # wl_platform backend regardless of which display server will be used,
+      # so leaving them out fails on a missing wayland-client-core.h. This list
+      # mirrors what Fyne's own CI installs.
       - name: Install GUI build dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgl1-mesa-dev xorg-dev
+          sudo apt-get install -y libgl1-mesa-dev xorg-dev libx11-dev \
+                                  libwayland-dev libxkbcommon-dev
 
       - name: Build
         run: go build ./...
@@ -85,8 +95,19 @@ jobs:
       - name: Vet
         run: go vet ./...
 
+      # Compiling the test binaries is separated from running them so the two
+      # can be told apart in the step timings. Under cgo with a cold cache the
+      # build dominates, and without this split a slow compile and a hung test
+      # look identical from the outside.
+      - name: Build tests
+        run: go test -race -run "^$" ./...
+
       - name: Test
-        run: go test -race ./...
+        # -timeout is below Go's 10-minute default on purpose. These tests take
+        # seconds; anything approaching a minute is a deadlock, and the timeout
+        # turns it into a goroutine dump naming the offender instead of a job
+        # that sits there.
+        run: go test -race -timeout 2m ./...
 
   lint:
     name: lint
@@ -104,7 +125,8 @@ jobs:
       - name: Install GUI build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgl1-mesa-dev xorg-dev
+          sudo apt-get install -y libgl1-mesa-dev xorg-dev libx11-dev \
+                                  libwayland-dev libxkbcommon-dev
 
       # Enforces the godoc rule from adr/0007 via revive's `exported` rule,
       # configured in .golangci.yml.
