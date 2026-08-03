@@ -1,28 +1,25 @@
 name: CI
 
-# The paths filter means a documentation-only commit triggers nothing, which is
-# why this file can exist before any Go code does. It starts working by itself
-# once go.mod lands at M1.
+# There is deliberately no `paths:` filter here, and there must not be one.
 #
-# The two path lists are duplicated on purpose: GitHub Actions does not support
-# YAML anchors. Keep them in sync.
+# The jobs below are required status checks. GitHub leaves a required check in a
+# permanent "Pending" state when its workflow is skipped by path filtering, which
+# blocks the pull request from ever merging. A documentation-only pull request,
+# including the ones that tick a ROADMAP box, would be stuck. A job skipped by an
+# `if:` condition reports success; a workflow skipped by a path filter does not.
+# See docs.github.com, "Troubleshooting required status checks".
+#
+# The cost is that a documentation-only pull request runs the full matrix for
+# about a minute. That is the price of branch protection that actually works,
+# and it is cheap.
+#
+# codeql.yml keeps its filter on purpose: it is not a required check, so it is
+# free to stay quiet on documentation changes.
 on:
   push:
     branches: [main, dev]
-    paths:
-      - "**/*.go"
-      - "go.mod"
-      - "go.sum"
-      - ".golangci.yml"
-      - ".github/workflows/ci.yml"
   pull_request:
     branches: [main, dev]
-    paths:
-      - "**/*.go"
-      - "go.mod"
-      - "go.sum"
-      - ".golangci.yml"
-      - ".github/workflows/ci.yml"
 
 permissions:
   contents: read
@@ -32,10 +29,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # The paths filter includes this workflow file, so editing CI runs CI. Before
-  # M1 that means a Go build with no go.mod, which fails. This guard makes the
-  # Go jobs skip instead, and disappears from the critical path the moment any
-  # .go file exists. Mirrors the same job in codeql.yml.
+  # Kept, and now load-bearing in a second way. Without the paths filter this
+  # workflow runs on every pull request, including ones based on a commit from
+  # before go.mod existed, where setup-go fails outright on a missing
+  # go-version-file. The guard makes the Go jobs skip instead, and a job skipped
+  # by an `if:` reports success, so a required check is still satisfied.
+  # Mirrors the same job in codeql.yml.
   guard:
     name: check for Go source
     runs-on: ubuntu-latest
@@ -50,7 +49,7 @@ jobs:
             echo "has_go=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_go=false" >> "$GITHUB_OUTPUT"
-            echo "No Go source yet, skipping build and test. Expected before M1."
+            echo "No Go source here, skipping build and test."
           fi
 
   test:
