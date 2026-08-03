@@ -66,11 +66,13 @@ jobs:
           cache: true
 
       # Autobuild compiles the whole module, including the Fyne GUI, so the
-      # same build-time headers CI needs are needed here.
+      # same build-time headers CI needs are needed here. Keep this list in
+      # step with the one in ci.yml.
       - name: Install GUI build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgl1-mesa-dev xorg-dev
+          sudo apt-get install -y libgl1-mesa-dev xorg-dev libx11-dev \
+                                  libwayland-dev libxkbcommon-dev
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4

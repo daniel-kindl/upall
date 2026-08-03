@@ -83,10 +83,13 @@ scaffolding that lights up at M1.
 **Goal:** Both binaries build and run on both OSes, and every automated check works.
 
 - [x] `go.mod` declares the module path and pins the current stable Go release.
-- [ ] `go build ./cmd/...` produces `upall` and `upall-gui` on Windows and Linux.
+- [x] `go build -o bin/ ./cmd/...` produces `upall` and `upall-gui` on Windows and Linux.
+      The `-o` is not optional and was not in the original wording of this criterion:
+      given more than one main package, plain `go build` compiles every one of them and
+      then writes none, by design. It checks that they build; it does not produce them.
 - [x] `upall version` prints a version, commit SHA, and build date injected at build
       time via `-ldflags`, not hardcoded.
-- [ ] `upall-gui` opens an empty window and closes cleanly.
+- [x] `upall-gui` opens an empty window and closes cleanly.
 - [x] `.golangci.yml` enables `revive` with the `exported` rule, so a missing doc
       comment on an exported identifier fails the build. It must use the
       **golangci-lint v2 schema**, because `golangci-lint-action` v7 and later
