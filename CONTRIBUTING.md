@@ -35,6 +35,24 @@ go test ./...
 golangci-lint run
 ```
 
+A plain `go build` is enough for development, including for `upall version`. The
+toolchain stamps the commit, its timestamp, and whether your tree was dirty into every
+binary built inside a repository, so the only thing missing is a version number, and a
+working tree does not have one:
+
+```console
+$ ./upall version
+upall dev (2324cc3-dirty, 2026-08-03T14:32:29Z)
+go1.26.5 linux/amd64
+```
+
+Release builds supply the number with a linker flag. Nothing needs to type this by
+hand; the release pipeline does it.
+
+```console
+go build -ldflags "-X github.com/daniel-kindl/upall/internal/buildinfo.version=1.2.3" ./cmd/...
+```
+
 On Linux, the GUI needs X11 and OpenGL development headers to *build*. Nothing extra is
 needed to *run* it, which is the whole point of
 [ADR-0005](adr/0005-fyne-for-the-gui-client.md).

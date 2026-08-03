@@ -1,6 +1,11 @@
 package cli
 
-import "github.com/spf13/cobra"
+import (
+	"io"
+	"os"
+
+	"github.com/spf13/cobra"
+)
 
 // Exit codes reachable from the current command tree. The full contract is in
 // docs/ARCHITECTURE.md, and deriving the rest of it from a run's results is
@@ -20,15 +25,26 @@ need it. Nothing changes until you have seen the plan and answered a prompt.
 This build is the skeleton. The commands that plan and apply updates are not in
 it yet; see docs/ROADMAP.md for what lands when.`
 
-// Execute parses the process arguments, runs the command they select, and
-// returns the exit code the process should terminate with.
+// Execute parses args, runs the command they select, and returns the exit code
+// the process should terminate with. Pass os.Args[1:].
 //
 // It does not call os.Exit. Keeping process lifetime with the caller is what
 // lets tests assert on the code, and what keeps cmd/upall down to one line.
-// Anything the user needs to see, including errors, has already been written to
-// the terminal by the time this returns.
-func Execute() int {
-	if err := newRootCommand().Execute(); err != nil {
+// Anything the user needs to see, including errors, has been written to stdout
+// or stderr by the time this returns.
+func Execute(args []string) int {
+	return execute(args, os.Stdout, os.Stderr)
+}
+
+// execute is [Execute] with the terminal handed in, so tests can read what was
+// written instead of letting it escape into the test log.
+func execute(args []string, out, errOut io.Writer) int {
+	root := newRootCommand()
+	root.SetArgs(args)
+	root.SetOut(out)
+	root.SetErr(errOut)
+
+	if err := root.Execute(); err != nil {
 		return exitUsage
 	}
 	return exitOK
@@ -54,6 +70,8 @@ func newRootCommand() *cobra.Command {
 			return cmd.Help()
 		},
 	}
+
+	root.AddCommand(newVersionCommand())
 
 	return root
 }

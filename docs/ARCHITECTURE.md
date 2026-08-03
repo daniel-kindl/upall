@@ -18,8 +18,8 @@ If you are about to describe how one package works in a markdown file, stop and 
 it in that package's `doc.go` instead. See [ADR-0007](../adr/0007-godoc-as-reference-documentation.md).
 
 The [Repo layout](#repo-layout) table at the bottom is the index into those `doc.go`
-files. Packages listed there do not exist yet. They arrive across M1 to M12, and the
-table is the contract for where things go when they do.
+files. Most of the packages it lists do not exist yet. They arrive across M1 to M12, and
+the table is the contract for where things go when they do.
 
 ---
 
@@ -309,8 +309,9 @@ To report a vulnerability, see [SECURITY.md](../SECURITY.md).
 ## Repo layout
 
 Each package has one job, stated here in one line and explained properly in its
-`doc.go`. Nothing in this table exists yet. The ROADMAP says which milestone introduces
-each one.
+`doc.go`. Most of this table is still a plan; the ROADMAP says which milestone
+introduces each package, and `go doc ./internal/<pkg>` tells you whether it has
+arrived.
 
 | Path | Job |
 |---|---|
@@ -325,6 +326,7 @@ each one.
 | `internal/exec/` | Subprocess runner. The seam tests fake. |
 | `internal/elevate/` | UAC and sudo |
 | `internal/paths/` | Platform config, data, and cache directories |
+| `internal/buildinfo/` | Version, commit, and build date of the running binary |
 | `internal/cli/` | Commands, flags, terminal rendering. The only place a terminal exists. |
 | `internal/gui/` | Fyne views and bindings |
 

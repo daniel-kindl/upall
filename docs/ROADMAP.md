@@ -84,7 +84,7 @@ scaffolding that lights up at M1.
 
 - [x] `go.mod` declares the module path and pins the current stable Go release.
 - [ ] `go build ./cmd/...` produces `upall` and `upall-gui` on Windows and Linux.
-- [ ] `upall version` prints a version, commit SHA, and build date injected at build
+- [x] `upall version` prints a version, commit SHA, and build date injected at build
       time via `-ldflags`, not hardcoded.
 - [ ] `upall-gui` opens an empty window and closes cleanly.
 - [x] `.golangci.yml` enables `revive` with the `exported` rule, so a missing doc
