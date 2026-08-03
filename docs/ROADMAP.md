@@ -75,16 +75,16 @@ scaffolding that lights up at M1.
 
 **Goal:** Both binaries build and run on both OSes, and every automated check works.
 
-- [ ] `go.mod` declares the module path and pins the current stable Go release.
+- [x] `go.mod` declares the module path and pins the current stable Go release.
 - [ ] `go build ./cmd/...` produces `upall` and `upall-gui` on Windows and Linux.
 - [ ] `upall version` prints a version, commit SHA, and build date injected at build
       time via `-ldflags`, not hardcoded.
 - [ ] `upall-gui` opens an empty window and closes cleanly.
-- [ ] `.golangci.yml` enables `revive` with the `exported` rule, so a missing doc
+- [x] `.golangci.yml` enables `revive` with the `exported` rule, so a missing doc
       comment on an exported identifier fails the build. It must use the
       **golangci-lint v2 schema**, because `golangci-lint-action` v7 and later
       support v2 only. Most examples online still show the incompatible v1 syntax.
-- [ ] `go vet ./...`, `golangci-lint run`, and `go test ./...` all pass.
+- [x] `go vet ./...`, `golangci-lint run`, and `go test ./...` all pass.
 - [ ] CI runs build, vet, lint, and test on `windows-latest` and `ubuntu-latest` for
       every PR, and the matrix is required for merge.
 - [ ] CodeQL runs on PRs and weekly, and reports no errors.
