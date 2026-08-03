@@ -53,6 +53,13 @@ scaffolding that lights up at M1.
 - [x] `.github/dependabot.yml`, `.github/workflows/ci.yml`, and
       `.github/workflows/codeql.yml` exist with `paths:` filters, so a doc-only commit
       triggers no Go job and leaves no red check.
+
+> **Amended at M1.** `ci.yml` no longer has a `paths:` filter. The moment its jobs
+> became required status checks the two became incompatible: GitHub leaves a required
+> check pending forever when its workflow is skipped by path filtering, so every
+> doc-only pull request, including the ones that tick boxes in this file, would have
+> been unmergeable. `codeql.yml` keeps its filter, because it is not a required check.
+> The reasoning is in the header comment of `ci.yml`.
 - [x] Every `@`-import in CLAUDE.md and every relative markdown link resolves.
 
 **Landing** (needs network, done once the above is reviewed):
