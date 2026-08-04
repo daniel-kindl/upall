@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/daniel-kindl/upall/internal/core"
 )
 
 func TestExecuteExitCodes(t *testing.T) {
@@ -15,32 +17,32 @@ func TestExecuteExitCodes(t *testing.T) {
 		{
 			name: "no arguments prints help and succeeds",
 			args: nil,
-			want: exitOK,
+			want: int(core.ExitOK),
 		},
 		{
 			name: "version succeeds",
 			args: []string{"version"},
-			want: exitOK,
+			want: int(core.ExitOK),
 		},
 		{
 			name: "explicit help succeeds",
 			args: []string{"--help"},
-			want: exitOK,
+			want: int(core.ExitOK),
 		},
 		{
 			name: "an unknown command is a usage error",
 			args: []string{"bogus"},
-			want: exitUsage,
+			want: int(core.ExitUsage),
 		},
 		{
 			name: "an unknown flag is a usage error",
 			args: []string{"--nosuchflag"},
-			want: exitUsage,
+			want: int(core.ExitUsage),
 		},
 		{
 			name: "an argument to a command that takes none is a usage error",
 			args: []string{"version", "extra"},
-			want: exitUsage,
+			want: int(core.ExitUsage),
 		},
 	}
 
@@ -59,8 +61,8 @@ func TestExecuteExitCodes(t *testing.T) {
 func TestBareCommandPrintsHelp(t *testing.T) {
 	var out, errOut bytes.Buffer
 
-	if code := execute(nil, &out, &errOut); code != exitOK {
-		t.Fatalf("execute(nil) = %d, want %d", code, exitOK)
+	if code := execute(nil, &out, &errOut); code != int(core.ExitOK) {
+		t.Fatalf("execute(nil) = %d, want %d", code, int(core.ExitOK))
 	}
 
 	got := out.String()
@@ -74,8 +76,8 @@ func TestBareCommandPrintsHelp(t *testing.T) {
 func TestVersionCommandOutput(t *testing.T) {
 	var out, errOut bytes.Buffer
 
-	if code := execute([]string{"version"}, &out, &errOut); code != exitOK {
-		t.Fatalf("execute([version]) = %d, want %d\nstderr: %s", code, exitOK, errOut.String())
+	if code := execute([]string{"version"}, &out, &errOut); code != int(core.ExitOK) {
+		t.Fatalf("execute([version]) = %d, want %d\nstderr: %s", code, int(core.ExitOK), errOut.String())
 	}
 
 	got := out.String()
