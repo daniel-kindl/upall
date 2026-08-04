@@ -5,15 +5,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-)
 
-// Exit codes reachable from the current command tree. The full contract is in
-// docs/ARCHITECTURE.md, and deriving the rest of it from a run's results is
-// internal/core's job, so those codes arrive with that package rather than
-// being declared here unused.
-const (
-	exitOK    = 0
-	exitUsage = 2
+	"github.com/daniel-kindl/upall/internal/core"
 )
 
 const rootLong = `upall updates everything on this machine: OS package managers, OS updates, and
@@ -27,6 +20,9 @@ it yet; see docs/ROADMAP.md for what lands when.`
 
 // Execute parses args, runs the command they select, and returns the exit code
 // the process should terminate with. Pass os.Args[1:].
+//
+// The codes are [core.ExitCode] values, which is where the contract lives; this
+// package chooses among them rather than defining them.
 //
 // It does not call os.Exit. Keeping process lifetime with the caller is what
 // lets tests assert on the code, and what keeps cmd/upall down to one line.
@@ -45,9 +41,13 @@ func execute(args []string, out, errOut io.Writer) int {
 	root.SetErr(errOut)
 
 	if err := root.Execute(); err != nil {
-		return exitUsage
+		// Every error the current tree can produce is cobra rejecting the
+		// request itself: an unknown command, or a flag that would not parse.
+		// The codes describing a run's outcome arrive with the pipeline that
+		// produces one.
+		return int(core.ExitUsage)
 	}
-	return exitOK
+	return int(core.ExitOK)
 }
 
 // newRootCommand builds the upall command tree and returns its root.

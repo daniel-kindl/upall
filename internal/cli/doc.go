@@ -11,13 +11,13 @@
 //
 // # Exit codes
 //
-// The exit codes are a public interface under semver, and the full contract is
-// in docs/ARCHITECTURE.md. The command tree at this milestone can produce two
-// of them:
+// The exit codes are a public interface under semver. They are declared and
+// documented in internal/core, which is also where Result.ExitCode derives the
+// ones describing a run. This package chooses among them; it does not define
+// them, because a contract kept in two places is a contract free to drift.
 //
-//	0  the command did what was asked
-//	2  usage error: an unknown command, or a flag that would not parse
-//
-// The remaining codes describe the outcome of a run, so they arrive with the
-// pipeline that produces one.
+// The command tree at this milestone can produce two: core.ExitOK when the
+// command did what was asked, and core.ExitUsage for an unknown command or a
+// flag that would not parse. The rest describe the outcome of a run, so they
+// arrive with the pipeline that produces one.
 package cli
