@@ -113,19 +113,21 @@ scaffolding that lights up at M1.
 
 `internal/core`: `Update`, `Plan`, `Result`, `Provider`, `Platform`.
 
-- [ ] `internal/core` imports nothing outside the standard library, and nothing from
-      elsewhere in this module.
-- [ ] The package compiles with no reference to `os/exec`, `os.Stdout`, or `fmt.Print*`,
-      so the types cannot perform I/O.
-- [ ] `Provider` declares `ID`, `Platforms`, `NeedsElevation`, `Detect`, `Plan`, and
+- [x] `internal/core` imports nothing outside the standard library, and nothing from
+      elsewhere in this module. Enforced by `imports_test.go`, which parses the
+      package's non-test files rather than trusting review.
+- [x] The package compiles with no reference to `os/exec`, `os.Stdout`, or `fmt.Print*`,
+      so the types cannot perform I/O. The same test bans the `os` import outright and
+      fails on any `fmt.Print*` call.
+- [x] `Provider` declares `ID`, `Platforms`, `NeedsElevation`, `Detect`, `Plan`, and
       `Apply` as described in ARCHITECTURE.md.
-- [ ] `Platform` gating answers "can this provider run here" for windows and linux,
+- [x] `Platform` gating answers "can this provider run here" for windows and linux,
       with darwin representable but unused.
-- [ ] `internal/core/doc.go` explains the type relationships and the lifecycle of an
+- [x] `internal/core/doc.go` explains the type relationships and the lifecycle of an
       `Update` through a run.
-- [ ] Table-driven tests cover plan aggregation, result merging, and exit-code
+- [x] Table-driven tests cover plan aggregation, result merging, and exit-code
       derivation, including the empty-plan and all-failed cases.
-- [ ] `go doc ./internal/core` reads as usable reference documentation.
+- [x] `go doc ./internal/core` reads as usable reference documentation.
 
 ---
 
