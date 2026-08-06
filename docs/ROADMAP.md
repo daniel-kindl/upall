@@ -135,14 +135,18 @@ scaffolding that lights up at M1.
 
 **Goal:** One way to run a subprocess, and one place tests replace it.
 
-- [ ] `internal/exec` exposes a runner interface plus a real implementation, and all
-      subprocess execution in the codebase goes through it.
-- [ ] The runner takes argv as `[]string`. There is no API that accepts a command
+- [x] `internal/exec` exposes a runner interface plus a real implementation, and all
+      subprocess execution in the codebase goes through it. The second half is
+      `TestNothingElseRunsSubprocesses`, which walks every package but this one and
+      fails on an `os/exec` import or an `os.StartProcess` call. Test files are
+      included: AGENTS.md forbids a test invoking a real package manager, and reaching
+      for `os/exec` in one is how that stops being true.
+- [x] The runner takes argv as `[]string`. There is no API that accepts a command
       string, so no caller can build one.
 - [ ] Every call takes a `context.Context`; cancelling it kills the process, and a test
       proves the process is gone.
-- [ ] Per-command timeouts are supported and surface as the `timeout` error kind.
-- [ ] stdout and stderr are captured separately and returned. Neither is written to the
+- [x] Per-command timeouts are supported and surface as the `timeout` error kind.
+- [x] stdout and stderr are captured separately and returned. Neither is written to the
       terminal by this package.
 - [ ] A fake runner ships for tests, with canned output, canned exit codes, and
       recorded invocations.
