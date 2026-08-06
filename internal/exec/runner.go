@@ -10,24 +10,50 @@ import (
 	"time"
 )
 
-// waitDelay bounds how long Wait keeps reading the output pipes after the
-// process itself is gone.
-//
-// A process that exits while a descendant still holds the inherited pipes would
-// otherwise leave Wait blocked forever on output nobody is going to send. The
-// delay turns that into a bounded, reported failure.
-const waitDelay = 5 * time.Second
+const (
+	// defaultKillGrace is how long a cancelled command is given to unwind after
+	// being asked to stop, before it is killed outright. It is only used where
+	// a polite stop exists, which is Linux; see process_windows.go.
+	defaultKillGrace = 5 * time.Second
 
-// osRunner is the [Runner] that starts real processes. It holds no state, so
-// one is shared by every provider in a run.
-type osRunner struct{}
+	// defaultWaitDelay bounds how long Wait keeps reading the output pipes
+	// after the process itself is gone.
+	//
+	// A descendant that survived holds the inherited pipes open, and Wait
+	// cannot return until every writer has closed them, so without this a
+	// leaked process turns into a hung run. It must stay comfortably above
+	// defaultKillGrace, or it would fire while the escalation to SIGKILL is
+	// still pending and kill the direct child out from under it.
+	defaultWaitDelay = 10 * time.Second
+)
+
+// osRunner is the [Runner] that starts real processes. It holds no mutable
+// state, so one is shared by every provider in a run.
+type osRunner struct {
+	// killGrace and waitDelay are fields rather than constants so this
+	// package's own tests can stretch or shrink them. Nothing outside sets
+	// them.
+	killGrace time.Duration
+	waitDelay time.Duration
+
+	// confine builds the process tree, and is a field for one reason: a
+	// platform that cannot confine a command returns an empty tree and the run
+	// degrades to killing the direct child. That path has to be tested, and
+	// contriving a machine where job objects are unavailable is not something
+	// a test can do. Nothing outside this package sets it.
+	confine func(*osexec.Cmd) *processTree
+}
 
 // New returns a [Runner] that starts real processes.
 //
 // Tests want the fake in internal/exec/exectest instead. Nothing in upall should
 // construct this outside the wiring in cmd/.
 func New() Runner {
-	return &osRunner{}
+	return &osRunner{
+		killGrace: defaultKillGrace,
+		waitDelay: defaultWaitDelay,
+		confine:   newProcessTree,
+	}
 }
 
 // Run implements [Runner].
@@ -58,15 +84,40 @@ func (r *osRunner) Run(ctx context.Context, c Command) (Output, error) {
 	}
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
-	cmd.WaitDelay = waitDelay
+	cmd.WaitDelay = r.waitDelay
 
 	// cmd.Stdin is left nil, which os/exec connects to the null device. That is
 	// deliberate and there is no field to change it: a package manager that
 	// decides to prompt reads EOF and fails, rather than waiting forever on an
 	// answer nobody can see it asking for.
 
+	tree := r.confine(cmd)
+	defer tree.release()
+
+	// Closed once Wait has returned, which bounds the escalation a platform's
+	// kill may have started. The defer runs before tree.release above it, so
+	// nothing is still watching when the confinement is dropped.
+	unwound := make(chan struct{})
+	defer close(unwound)
+
+	// Replaces the plain process kill CommandContext installs, which reaches
+	// the command and nothing it spawned.
+	cmd.Cancel = func() error { return tree.kill(cmd, r.killGrace, unwound) }
+
 	started := time.Now()
-	err := cmd.Run()
+	if err := cmd.Start(); err != nil {
+		out := Output{ExitCode: -1, Duration: time.Since(started)}
+		return out, classify(ctx, runCtx, c, out, err)
+	}
+
+	// Confinement can only be completed once the process exists. Failing here
+	// is a degradation rather than a failure: the command is already running,
+	// kill falls back to the direct child, and a machine where process
+	// confinement is unavailable should still be able to update itself. The
+	// debug logger records it when logging arrives.
+	_ = tree.attach(cmd)
+
+	err := cmd.Wait()
 
 	out := Output{
 		Stdout:    stdout.bytes(),

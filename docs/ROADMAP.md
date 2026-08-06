@@ -143,8 +143,14 @@ scaffolding that lights up at M1.
       for `os/exec` in one is how that stops being true.
 - [x] The runner takes argv as `[]string`. There is no API that accepts a command
       string, so no caller can build one.
-- [ ] Every call takes a `context.Context`; cancelling it kills the process, and a test
-      proves the process is gone.
+- [x] Every call takes a `context.Context`; cancelling it kills the process, and a test
+      proves the process is gone. "The process" is the whole tree: a command is confined
+      to a process group on Linux and a job object on Windows before it starts, so a
+      cancelled `apt` takes `dpkg` with it rather than leaving it holding the lock.
+      The proof is that capturing stdout means `Run` cannot return until every holder of
+      the pipe's write end has closed it, and the test's grandchild inherited one — so
+      `Run` returning at all is proof it died. Asking whether a pid is alive would be
+      unsound: Windows reuses pids, and on Linux `kill(pid, 0)` succeeds for a zombie.
 - [x] Per-command timeouts are supported and surface as the `timeout` error kind.
 - [x] stdout and stderr are captured separately and returned. Neither is written to the
       terminal by this package.
@@ -152,7 +158,10 @@ scaffolding that lights up at M1.
       recorded invocations.
 - [ ] Structured logging records argv, duration, and exit code at debug level, with no
       secrets and no full environment.
-- [ ] Tests pass on both OSes using a command that exists on both.
+- [x] Tests pass on both OSes using a command that exists on both. No such command
+      exists — `cmd.exe` and `sh` share nothing, and `timeout` refuses redirected input —
+      so the subprocess under test is the test binary re-executed, which is the `os/exec`
+      standard library's own idiom and a command that exists on both by construction.
 
 ---
 

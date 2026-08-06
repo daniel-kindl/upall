@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	osexec "os/exec"
 	"strconv"
 	"testing"
 	"time"
@@ -44,6 +45,19 @@ func helperArgv(t *testing.T, mode string, args ...string) []string {
 // helperEnviron is the environment that arms the helper, plus any additions.
 func helperEnviron(extra ...string) []string {
 	return append([]string{helperEnv + "=1"}, extra...)
+}
+
+// testRunner is [New] with the timings a test needs instead of the defaults.
+//
+// It exists so that a test cannot construct an osRunner and forget to wire
+// confine, which fails as a nil dereference deep inside Run rather than as
+// anything that names the omission.
+func testRunner(killGrace, waitDelay time.Duration) *osRunner {
+	return &osRunner{
+		killGrace: killGrace,
+		waitDelay: waitDelay,
+		confine:   newProcessTree,
+	}
 }
 
 // helperCommand is the [Command] that runs the helper in mode, armed and ready
@@ -175,6 +189,36 @@ func TestHelperProcess(t *testing.T) {
 			}
 		}
 		time.Sleep(d)
+
+	case "tree":
+		// Start a grandchild and then block, so the runner is cancelling a
+		// command that is two processes deep.
+		//
+		// The grandchild inherits this process's stdout, which is the runner's
+		// capture pipe, and it is the one that writes the readiness file. Both
+		// facts are load-bearing: the file appearing means the grandchild
+		// specifically is running, and the inherited pipe is what the test
+		// reads the answer from. See TestCancelKillsTheWholeProcessTree.
+		//
+		// Deliberately no process group, no job, and no Pdeathsig on it. The
+		// grandchild must survive its parent unless the runner kills it, or
+		// the test would pass without the code under test doing anything.
+		self, err := os.Executable()
+		if err != nil {
+			emitf(os.Stderr, "helper: %v", err)
+			os.Exit(2)
+		}
+
+		sub := osexec.Command(self, "-test.run=^TestHelperProcess$", "--", "sleep", "5m", args[0])
+		sub.Env = append(os.Environ(), helperEnv+"=1")
+		sub.Stdout = os.Stdout
+		sub.Stderr = os.Stderr
+		if err := sub.Start(); err != nil {
+			emitf(os.Stderr, "helper: starting the grandchild: %v", err)
+			os.Exit(2)
+		}
+
+		time.Sleep(5 * time.Minute)
 
 	default:
 		emitf(os.Stderr, "helper: unknown mode %q", mode)

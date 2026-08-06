@@ -35,6 +35,31 @@
 // context.DeadlineExceeded. See its documentation for why that is required
 // rather than merely convenient.
 //
+// # What "kills the process" means
+//
+// It means the process and everything it started. A package manager is rarely
+// one process: apt drives dpkg, winget hands work to installers and msiexec,
+// and killing only the one upall launched leaves the rest running with the
+// package database locked. The next run then fails for a reason that has
+// nothing to do with anything the user did.
+//
+// Each command is therefore confined before it starts, and the confinement is
+// what gets terminated. On Linux that is a process group of its own, signalled
+// with SIGTERM and then SIGKILL if it does not unwind within a grace period,
+// because SIGKILL to dpkg mid-transaction leaves a machine needing
+// `dpkg --configure -a`. On Windows it is a job object, terminated at once:
+// there is no portable polite stop for a non-console process, and inventing one
+// that works occasionally is worse than terminating honestly. The asymmetry is
+// deliberate and lives in process_linux.go and process_windows.go.
+//
+// Confinement that cannot be set up degrades rather than fails. The command
+// still runs and cancelling it still kills the command; what is lost is the
+// reach into what the command spawned. A machine where job objects are
+// unavailable should still be able to update itself.
+//
+// [Command.Timeout] and cancellation both arrive here, so a timed-out command
+// takes its descendants with it exactly as an interrupted one does.
+//
 // # Failure is loud
 //
 // A command that exits non-zero returns [ExitError]. It is an error and not a
@@ -75,13 +100,19 @@
 //
 // # What is not here yet
 //
-// Killing the whole process tree rather than the direct child: apt spawns dpkg
-// and winget spawns installers, and those must go too. It arrives later in M3.
+// Debug logging of argv, duration, and exit code. The logger will be injected
+// and will default to discarding, never to slog.Default, which writes to stderr
+// and would breach the frontend boundary from the bottom of the module.
 //
-// Debug logging of argv, duration, and exit code, which arrives with it. The
-// logger will be injected and will default to discarding, never to
-// slog.Default, which writes to stderr and would breach the frontend boundary
-// from the bottom of the module.
+// The fake runner in internal/exec/exectest, which arrives with it.
+//
+// # Platforms
+//
+// This package builds on linux and windows and nowhere else, because process
+// confinement has no portable form and each platform's is a separate file.
+// macOS is Post-1.0 in the ROADMAP, and a build failure naming the missing file
+// is a better answer there than a silent fallback that cancels a run without
+// reaching what it started.
 //
 // Elevation is not here and will not be. Running a command as root or
 // Administrator is internal/elevate's job at M7, and it will describe what it
