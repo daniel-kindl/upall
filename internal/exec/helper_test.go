@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	osexec "os/exec"
 	"strconv"
@@ -54,6 +55,7 @@ func helperEnviron(extra ...string) []string {
 // anything that names the omission.
 func testRunner(killGrace, waitDelay time.Duration) *osRunner {
 	return &osRunner{
+		logger:    slog.New(slog.DiscardHandler),
 		killGrace: killGrace,
 		waitDelay: waitDelay,
 		confine:   newProcessTree,

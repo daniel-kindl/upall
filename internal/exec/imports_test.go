@@ -140,6 +140,11 @@ func TestExecCannotWriteToATerminal(t *testing.T) {
 			"Stderr": "the command's streams are captured; this package owns neither of upall's own",
 			"Stdin":  "commands are given no standard input, and this package never reads upall's",
 		},
+		"slog": {
+			// The one that would slip past every import check, because
+			// log/slog is a package this one legitimately has.
+			"Default": "slog.Default writes to standard error; New takes a logger and discards when given none",
+		},
 	}
 
 	for name, file := range sourceFiles(t) {
@@ -205,18 +210,25 @@ func TestNothingElseRunsSubprocesses(t *testing.T) {
 		if d.IsDir() {
 			switch {
 			case name == ".":
-				// The root itself, which the dot rule below would otherwise
-				// skip, ending the walk before it started.
+				// The root itself, which the rule below would otherwise skip,
+				// ending the walk before it started.
 				return nil
-			case name == self:
-				// This package is the exception. Its own subpackages are not.
-				return fs.SkipDir
-			case strings.HasPrefix(d.Name(), "."), d.Name() == "bin", d.Name() == "testdata":
+			case strings.HasPrefix(d.Name(), "."), strings.HasPrefix(d.Name(), "_"),
+				d.Name() == "bin", d.Name() == "testdata":
+				// The same directories the Go toolchain itself ignores, plus
+				// build output.
 				return fs.SkipDir
 			}
 			return nil
 		}
 		if path.Ext(name) != ".go" {
+			return nil
+		}
+		// Only this package is exempt, matched on the file's own directory
+		// rather than by pruning the tree. Skipping the directory would take
+		// internal/exec/exectest with it, and the fake has no more business
+		// starting a process than anything else does.
+		if path.Dir(name) == self {
 			return nil
 		}
 		// Test files are checked too, unlike in the guards above. Those ask

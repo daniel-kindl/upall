@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	osexec "os/exec"
 	"slices"
@@ -30,6 +31,12 @@ const (
 // osRunner is the [Runner] that starts real processes. It holds no mutable
 // state, so one is shared by every provider in a run.
 type osRunner struct {
+	// logger records each command once it has finished. It is never nil: [New]
+	// substitutes a discarding handler, and the field is unexported because a
+	// settable one would be reassigned mid-run by somebody, and detect and plan
+	// share one runner across goroutines.
+	logger *slog.Logger
+
 	// killGrace and waitDelay are fields rather than constants so this
 	// package's own tests can stretch or shrink them. Nothing outside sets
 	// them.
@@ -44,12 +51,23 @@ type osRunner struct {
 	confine func(*osexec.Cmd) *processTree
 }
 
-// New returns a [Runner] that starts real processes.
+// New returns a [Runner] that starts real processes, recording each one to
+// logger at debug level.
+//
+// A nil logger discards. That is the default rather than slog.Default because
+// the default logger writes to standard error, and nothing below internal/cli
+// may write to a terminal. A package that acquired one by omission is exactly
+// the failure the frontend boundary exists to prevent, so the omission has to
+// be silence. What is and is not recorded is in the package comment.
 //
 // Tests want the fake in internal/exec/exectest instead. Nothing in upall should
 // construct this outside the wiring in cmd/.
-func New() Runner {
+func New(logger *slog.Logger) Runner {
+	if logger == nil {
+		logger = slog.New(slog.DiscardHandler)
+	}
 	return &osRunner{
+		logger:    logger,
 		killGrace: defaultKillGrace,
 		waitDelay: defaultWaitDelay,
 		confine:   newProcessTree,
@@ -107,7 +125,9 @@ func (r *osRunner) Run(ctx context.Context, c Command) (Output, error) {
 	started := time.Now()
 	if err := cmd.Start(); err != nil {
 		out := Output{ExitCode: -1, Duration: time.Since(started)}
-		return out, classify(ctx, runCtx, c, out, err)
+		err = classify(ctx, runCtx, c, out, err)
+		r.log(ctx, c, out, err)
+		return out, err
 	}
 
 	// Confinement can only be completed once the process exists. Failing here
@@ -127,10 +147,55 @@ func (r *osRunner) Run(ctx context.Context, c Command) (Output, error) {
 		Truncated: stdout.truncated || stderr.truncated,
 	}
 
-	if err == nil {
-		return out, nil
+	if err != nil {
+		err = classify(ctx, runCtx, c, out, err)
 	}
-	return out, classify(ctx, runCtx, c, out, err)
+	r.log(ctx, c, out, err)
+	return out, err
+}
+
+// log records one finished command at debug level.
+//
+// What is here is argv, where it ran, how long it took, and how it ended. What
+// is deliberately absent matters more:
+//
+// The environment is never recorded, not even its keys. It routinely holds
+// credentials — GITHUB_TOKEN, DOCKER_AUTH_CONFIG, an HTTPS_PROXY with a
+// password in the URL — and even the key names leak which services a machine
+// talks to. Only the count is logged, which answers the one question a debug
+// session has: whether the overlay was applied.
+//
+// Captured output is never recorded either, only its size. Package manager
+// output carries repository URLs with credentials embedded, and at debug level
+// that ends up pasted into a bug report. The stderr tail reaches the user
+// through core.ProviderResult.Output, which is a deliberate and bounded path.
+//
+// Argv is recorded in full, and that is safe by construction rather than by
+// luck: a command line is already readable by any user on the machine through
+// /proc/<pid>/cmdline or Task Manager, and core.ProviderResult.Command shows it
+// to the user anyway. The corollary is the useful part — a credential on a
+// command line is a bug whatever this function does, and the fix is to put it
+// in Command.Env, which is never logged. Redacting argv here would hide the bug
+// rather than remove it.
+func (r *osRunner) log(ctx context.Context, c Command, out Output, err error) {
+	attrs := []slog.Attr{
+		slog.Any("argv", c.Argv),
+		slog.Duration("duration", out.Duration),
+		slog.Int("exit_code", out.ExitCode),
+		slog.Int("stdout_bytes", len(out.Stdout)),
+		slog.Int("stderr_bytes", len(out.Stderr)),
+		slog.Int("env_overlay", len(c.Env)),
+	}
+	if c.Dir != "" {
+		attrs = append(attrs, slog.String("dir", c.Dir))
+	}
+	if err != nil {
+		attrs = append(attrs, slog.String("error", err.Error()))
+	}
+
+	// LogAttrs rather than Debug, because this runs once per command and the
+	// variadic form allocates whether or not anything is listening.
+	r.logger.LogAttrs(ctx, slog.LevelDebug, "ran a command", attrs...)
 }
 
 // classify turns the error Run got from os/exec into the one this package
