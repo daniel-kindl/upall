@@ -3,6 +3,7 @@ package exec
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"testing"
@@ -112,7 +113,7 @@ func TestHelperProcess(t *testing.T) {
 		args = args[1:]
 	}
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "helper: no mode given")
+		emit(os.Stderr, "helper: no mode given")
 		os.Exit(2)
 	}
 
@@ -120,63 +121,77 @@ func TestHelperProcess(t *testing.T) {
 	switch mode {
 	case "echo":
 		// Deliberately without a newline, so a test can assert on exact bytes.
-		fmt.Fprint(os.Stdout, args[0])
+		emit(os.Stdout, args[0])
 
 	case "warn":
-		fmt.Fprint(os.Stderr, args[0])
+		emit(os.Stderr, args[0])
 
 	case "both":
-		fmt.Fprint(os.Stdout, args[0])
-		fmt.Fprint(os.Stderr, args[1])
+		emit(os.Stdout, args[0])
+		emit(os.Stderr, args[1])
 
 	case "exit":
 		code, err := strconv.Atoi(args[0])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "helper: unparseable exit code %q", args[0])
+			emitf(os.Stderr, "helper: unparseable exit code %q", args[0])
 			os.Exit(2)
 		}
 		// Anything the caller wants to read alongside a failure.
 		if len(args) > 1 {
-			fmt.Fprint(os.Stderr, args[1])
+			emit(os.Stderr, args[1])
 		}
 		os.Exit(code)
 
 	case "env":
-		fmt.Fprint(os.Stdout, os.Getenv(args[0]))
+		emit(os.Stdout, os.Getenv(args[0]))
 
 	case "pwd":
 		dir, err := os.Getwd()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "helper: %v", err)
+			emitf(os.Stderr, "helper: %v", err)
 			os.Exit(2)
 		}
-		fmt.Fprint(os.Stdout, dir)
+		emit(os.Stdout, dir)
 
 	case "stdin":
 		// Reports what reading standard input does. It should be an immediate
 		// EOF, because this package never gives a command one.
 		var buf [16]byte
 		n, err := os.Stdin.Read(buf[:])
-		fmt.Fprintf(os.Stdout, "read %d bytes, err %v", n, err)
+		emitf(os.Stdout, "read %d bytes, err %v", n, err)
 
 	case "sleep":
 		d, err := time.ParseDuration(args[0])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "helper: unparseable duration %q", args[0])
+			emitf(os.Stderr, "helper: unparseable duration %q", args[0])
 			os.Exit(2)
 		}
 		// Announce that this process is up before blocking, so a test can wait
 		// for it to really be running rather than racing its own startup.
 		if len(args) > 1 {
 			if err := os.WriteFile(args[1], []byte(strconv.Itoa(os.Getpid())), 0o600); err != nil {
-				fmt.Fprintf(os.Stderr, "helper: %v", err)
+				emitf(os.Stderr, "helper: %v", err)
 				os.Exit(2)
 			}
 		}
 		time.Sleep(d)
 
 	default:
-		fmt.Fprintf(os.Stderr, "helper: unknown mode %q", mode)
+		emitf(os.Stderr, "helper: unknown mode %q", mode)
 		os.Exit(2)
 	}
+}
+
+// emit and emitf write the helper's output, discarding the write error.
+//
+// Producing output is the helper's entire job, so a failure to write leaves it
+// nothing to report and nowhere to report it. Discarding is explicit here
+// because errcheck fails the build on an ignored error, and an ignored one that
+// is genuinely unactionable should say so rather than be excluded in config.
+func emit(w io.Writer, a ...any) {
+	_, _ = fmt.Fprint(w, a...)
+}
+
+func emitf(w io.Writer, format string, a ...any) {
+	_, _ = fmt.Fprintf(w, format, a...)
 }
