@@ -154,10 +154,19 @@ scaffolding that lights up at M1.
 - [x] Per-command timeouts are supported and surface as the `timeout` error kind.
 - [x] stdout and stderr are captured separately and returned. Neither is written to the
       terminal by this package.
-- [ ] A fake runner ships for tests, with canned output, canned exit codes, and
-      recorded invocations.
-- [ ] Structured logging records argv, duration, and exit code at debug level, with no
-      secrets and no full environment.
+- [x] A fake runner ships for tests, with canned output, canned exit codes, and
+      recorded invocations. It is `internal/exec/exectest`, a subpackage so the fake does
+      not ship in a binary that runs as root, and it matches on the whole argv: a
+      manifest test at M4 is checking that a provider built the argv it claims to, so a
+      near miss has to be a miss. An unregistered command is an error naming both what
+      ran and what was expected, never a silent success.
+- [x] Structured logging records argv, duration, and exit code at debug level, with no
+      secrets and no full environment. The logger is injected and a nil one discards,
+      never `slog.Default`, which writes to stderr. The environment is never recorded,
+      not even its keys; captured output is never recorded, only its size. Argv is
+      recorded in full because it is already world-readable through `/proc/<pid>/cmdline`
+      and Task Manager — so a credential on a command line is a bug regardless, and the
+      fix is `Command.Env`, which is never logged.
 - [x] Tests pass on both OSes using a command that exists on both. No such command
       exists — `cmd.exe` and `sh` share nothing, and `timeout` refuses redirected input —
       so the subprocess under test is the test binary re-executed, which is the `os/exec`

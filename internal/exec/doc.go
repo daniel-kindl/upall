@@ -98,13 +98,22 @@
 // that stopped the command is. [Output.Truncated] reports when either had to
 // drop anything, so the loss is never silent.
 //
-// # What is not here yet
+// # What is recorded
 //
-// Debug logging of argv, duration, and exit code. The logger will be injected
-// and will default to discarding, never to slog.Default, which writes to stderr
-// and would breach the frontend boundary from the bottom of the module.
+// [New] takes a *slog.Logger and writes one record per finished command at
+// debug level: argv, working directory, duration, exit code, the sizes of the
+// captured streams, and how many environment entries were overlaid. A nil
+// logger discards, and it is never slog.Default, which writes to standard
+// error.
 //
-// The fake runner in internal/exec/exectest, which arrives with it.
+// Three things are deliberately absent, and the reasoning is on
+// [osRunner.log]. The environment is never recorded, not even its keys, because
+// it holds credentials and the key names alone say which services a machine
+// talks to. Captured output is never recorded, only its size, because package
+// manager output carries repository URLs with credentials in them. Argv is
+// recorded in full, because it is already readable by any user on the machine
+// and redacting it here would hide a credential-on-a-command-line bug rather
+// than remove it.
 //
 // # Platforms
 //

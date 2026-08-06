@@ -45,7 +45,7 @@ func TestRunCapturesTheStreamsSeparately(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := New().Run(t.Context(), helperCommand(t, tt.mode, tt.args...))
+			out, err := New(nil).Run(t.Context(), helperCommand(t, tt.mode, tt.args...))
 			if err != nil {
 				t.Fatalf("Run() returned %v, want no error", err)
 			}
@@ -66,7 +66,7 @@ func TestRunCapturesTheStreamsSeparately(t *testing.T) {
 }
 
 func TestRunReportsANonZeroExitAsAnError(t *testing.T) {
-	out, err := New().Run(t.Context(), helperCommand(t, "exit", "3", "it went wrong"))
+	out, err := New(nil).Run(t.Context(), helperCommand(t, "exit", "3", "it went wrong"))
 
 	var exit *ExitError
 	if !errors.As(err, &exit) {
@@ -95,7 +95,7 @@ func TestRunReportsANonZeroExitAsAnError(t *testing.T) {
 }
 
 func TestRunRejectsACommandWithNoArgv(t *testing.T) {
-	out, err := New().Run(t.Context(), Command{})
+	out, err := New(nil).Run(t.Context(), Command{})
 
 	if !errors.Is(err, ErrNoCommand) {
 		t.Errorf("Run() returned %v, want ErrNoCommand", err)
@@ -112,7 +112,7 @@ func TestRunRejectsACommandWithNoArgv(t *testing.T) {
 func TestRunReportsAMissingProgram(t *testing.T) {
 	cmd := Command{Argv: []string{"upall-no-such-program-exists"}}
 
-	out, err := New().Run(t.Context(), cmd)
+	out, err := New(nil).Run(t.Context(), cmd)
 
 	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("Run() returned %v, want an error wrapping ErrNotFound", err)
@@ -138,7 +138,7 @@ func TestRunHonoursDir(t *testing.T) {
 	cmd := helperCommand(t, "pwd")
 	cmd.Dir = dir
 
-	out, err := New().Run(t.Context(), cmd)
+	out, err := New(nil).Run(t.Context(), cmd)
 	if err != nil {
 		t.Fatalf("Run() returned %v, want no error", err)
 	}
@@ -157,7 +157,7 @@ func TestRunOverlaysEnvRatherThanReplacingIt(t *testing.T) {
 		cmd := helperCommand(t, "env", "UPALL_TEST_ADDED")
 		cmd.Env = helperEnviron("UPALL_TEST_ADDED=here")
 
-		out, err := New().Run(t.Context(), cmd)
+		out, err := New(nil).Run(t.Context(), cmd)
 		if err != nil {
 			t.Fatalf("Run() returned %v, want no error", err)
 		}
@@ -175,7 +175,7 @@ func TestRunOverlaysEnvRatherThanReplacingIt(t *testing.T) {
 		cmd := helperCommand(t, "env", "UPALL_TEST_INHERITED")
 		cmd.Env = helperEnviron("UPALL_TEST_UNRELATED=1")
 
-		out, err := New().Run(t.Context(), cmd)
+		out, err := New(nil).Run(t.Context(), cmd)
 		if err != nil {
 			t.Fatalf("Run() returned %v, want no error", err)
 		}
@@ -190,7 +190,7 @@ func TestRunOverlaysEnvRatherThanReplacingIt(t *testing.T) {
 		cmd := helperCommand(t, "env", "UPALL_TEST_OVERRIDDEN")
 		cmd.Env = helperEnviron("UPALL_TEST_OVERRIDDEN=from the command")
 
-		out, err := New().Run(t.Context(), cmd)
+		out, err := New(nil).Run(t.Context(), cmd)
 		if err != nil {
 			t.Fatalf("Run() returned %v, want no error", err)
 		}
@@ -204,7 +204,7 @@ func TestRunOverlaysEnvRatherThanReplacingIt(t *testing.T) {
 // hang on a question. A package manager that decides to prompt must read EOF
 // and fail, because there is nobody to answer and no way to see it asking.
 func TestRunGivesTheCommandNoStdin(t *testing.T) {
-	out, err := New().Run(t.Context(), helperCommand(t, "stdin"))
+	out, err := New(nil).Run(t.Context(), helperCommand(t, "stdin"))
 	if err != nil {
 		t.Fatalf("Run() returned %v, want no error", err)
 	}
@@ -224,7 +224,7 @@ func TestRunEnforcesTheTimeout(t *testing.T) {
 	cmd.Timeout = deadline
 
 	started := time.Now()
-	_, err := New().Run(t.Context(), cmd)
+	_, err := New(nil).Run(t.Context(), cmd)
 	elapsed := time.Since(started)
 
 	var timeout *TimeoutError
@@ -256,7 +256,7 @@ func TestRunReportsCancellation(t *testing.T) {
 	go awaitStart(t, ready, cancel)
 
 	started := time.Now()
-	_, err := New().Run(ctx, helperCommand(t, "sleep", "30s", ready))
+	_, err := New(nil).Run(ctx, helperCommand(t, "sleep", "30s", ready))
 	elapsed := time.Since(started)
 
 	if !errors.Is(err, context.Canceled) {
@@ -282,7 +282,7 @@ func TestCancellationBeatsAnExpiredDeadline(t *testing.T) {
 	// hanging the suite.
 	cmd.Timeout = 10 * time.Second
 
-	_, err := New().Run(ctx, cmd)
+	_, err := New(nil).Run(ctx, cmd)
 
 	if !errors.Is(err, context.Canceled) {
 		t.Errorf("Run() returned %v, want an error wrapping context.Canceled", err)
