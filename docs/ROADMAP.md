@@ -208,7 +208,23 @@ end to end on each OS.
       `*ManifestError` carrying both. Unknown fields come from the decoder's own
       `Undecoded`, so `parser` under `[detect]` is rejected too: only `[plan]` has one,
       and a manifest cannot configure something that will never be read.
-- [ ] `winget` works end to end on Windows and `apt` on Linux: detect, plan, apply.
+- [x] `winget` works end to end on Windows and `apt` on Linux: detect, plan, apply.
+
+> **What "end to end" means at M4, and what it does not.** There is no pipeline until M5
+> and no apply path until M6, so nothing here can be driven from the command line. The
+> criterion was met at the package level and by running the providers by hand through a
+> throwaway program, which is the only route that exists yet.
+>
+> `apt` is fully demonstrated. In a disposable `ubuntu:jammy-20240111` container: detect
+> found it, plan reported 52 updates **unprivileged**, apply upgraded them, and a second
+> plan reported 0.
+>
+> `winget` is demonstrated for detect and plan against the real tool on Windows, which
+> found 2 updates and parsed both. **Apply was deliberately not run**, because the only
+> machine available was a real workstation and the manifest's apply argv is `--all`.
+> winget's apply is therefore proven by its argv assertion and not against the tool. That
+> is the one gap in this milestone, and the place to close it is a Windows VM at M13,
+> where the criterion is already "a clean Windows VM completes a real run".
 - [x] `Detect` returns false rather than an error when the tool is absent, proven by a
       test on the OS where the tool does not exist. `winget_absent_test.go` is
       `//go:build !windows` and `apt_absent_test.go` is `//go:build !linux`, so each runs
