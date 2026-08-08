@@ -193,8 +193,11 @@ end to end on each OS.
       byte-for-byte: `.gitattributes` exempts `internal/provider/testdata` from line-ending
       normalization, because winget writes CRLF and apt writes LF and a parser that
       mishandled either would otherwise pass on every machine.
-- [ ] Manifest validation rejects unknown fields, missing required fields, and unknown
-      parser names, with an error naming the file and field.
+- [x] Manifest validation rejects unknown fields, missing required fields, and unknown
+      parser names, with an error naming the file and field. `provider.Load` returns a
+      `*ManifestError` carrying both. Unknown fields come from the decoder's own
+      `Undecoded`, so `parser` under `[detect]` is rejected too: only `[plan]` has one,
+      and a manifest cannot configure something that will never be read.
 - [ ] `winget` works end to end on Windows and `apt` on Linux: detect, plan, apply.
 - [ ] `Detect` returns false rather than an error when the tool is absent, proven by a
       test on the OS where the tool does not exist.
