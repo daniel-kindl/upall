@@ -185,8 +185,14 @@ end to end on each OS.
 - [ ] TOML manifests are loaded into an adapter satisfying the same interface, and a
       test asserts the registry cannot distinguish the two.
 - [ ] Manifests are embedded with `go:embed`, so the binary needs no files on disk.
-- [ ] At least three named output parsers exist (table, JSON, line-per-item), each
-      tested against captured real-world fixture output.
+- [x] At least three named output parsers exist (table, JSON, line-per-item), each
+      tested against captured real-world fixture output. They are `table`, `json`, and
+      `lines`, resolved by name in `provider.NewParser`. The fixtures are output from
+      winget 1.29.280 on Windows, apt 2.4.11 inside `ubuntu:jammy-20240111`, and
+      `docker image ls --format json`, each captured rather than written, and each kept
+      byte-for-byte: `.gitattributes` exempts `internal/provider/testdata` from line-ending
+      normalization, because winget writes CRLF and apt writes LF and a parser that
+      mishandled either would otherwise pass on every machine.
 - [ ] Manifest validation rejects unknown fields, missing required fields, and unknown
       parser names, with an error naming the file and field.
 - [ ] `winget` works end to end on Windows and `apt` on Linux: detect, plan, apply.
