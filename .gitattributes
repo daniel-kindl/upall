@@ -1,5 +1,11 @@
 * text=auto eol=lf
 
+# Captured tool output. A fixture is the bytes a real tool emitted, and its line
+# endings are part of what the parsers are tested against: winget writes CRLF and
+# apt writes LF, so normalizing these would quietly remove the difference the
+# parsers exist to cope with and let a CRLF bug pass on every machine.
+internal/provider/testdata/** -text
+
 # Binary assets: never normalize, never diff as text.
 *.png binary
 *.ico binary
