@@ -194,7 +194,11 @@ end to end on each OS.
       adapter and a hand-written Go provider and runs identical assertions against both,
       including detect-absent, detect-broken, and cancellation, so they are proven
       interchangeable in behavior and not only in type.
-- [ ] Manifests are embedded with `go:embed`, so the binary needs no files on disk.
+- [x] Manifests are embedded with `go:embed`, so the binary needs no files on disk.
+      `provider.Builtin` reads them from the embedded filesystem and returns a registry.
+      Three tests hold it: every embedded manifest loads, the embedded set matches the
+      directory on disk (an embed pattern silently misses a file it does not match), and
+      `Builtin` still works from a working directory containing no manifests at all.
 - [x] At least three named output parsers exist (table, JSON, line-per-item), each
       tested against captured real-world fixture output. They are `table`, `json`, and
       `lines`, resolved by name in `provider.NewParser`. The fixtures are output from
