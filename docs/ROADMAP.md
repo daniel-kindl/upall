@@ -179,8 +179,12 @@ scaffolding that lights up at M1.
 **Goal:** Both kinds of provider exist, are indistinguishable to callers, and one works
 end to end on each OS.
 
-- [ ] `internal/provider` holds a registry that resolves providers by ID and filters by
-      platform.
+- [x] `internal/provider` holds a registry that resolves providers by ID and filters by
+      platform. `Registry.Lookup` resolves, `Registry.For` filters, and both return
+      providers ordered by ID rather than by registration, so a renamed manifest file
+      cannot reorder a plan. `Registry.Add` refuses a duplicate ID and an ID outside
+      lowercase-digits-hyphen, because an ID is a config key, an `--only` value, and a
+      JSON field, all public under semver.
 - [ ] Native providers implement `core.Provider` directly.
 - [ ] TOML manifests are loaded into an adapter satisfying the same interface, and a
       test asserts the registry cannot distinguish the two.
