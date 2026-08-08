@@ -6,6 +6,97 @@
 // named parser, and a few need real code and live in internal/provider/native.
 // Nothing downstream can tell them apart.
 //
+// # The manifest schema
+//
+// A manifest is a provider written as data. It is the common case and the one to
+// reach for first: adding a typical provider should be a TOML file and a fixture
+// test, with no new Go and nothing to review beyond the commands themselves.
+// [Load] decodes and validates one, and [Manifest.Provider] turns it into a
+// [github.com/daniel-kindl/upall/internal/core.Provider].
+//
+// The schema is public under semver. Renaming a field is a breaking change.
+//
+//	id        = "winget"          # required. lowercase, digits, internal hyphens
+//	platforms = ["windows"]       # required. windows, linux, darwin
+//	elevate   = false             # optional. does Apply need admin or root
+//
+//	[detect]                      # required. is the tool here and usable
+//	command = ["winget", "--version"]
+//
+//	[plan]                        # required. read-only; what would be updated
+//	command = ["winget", "upgrade"]
+//	parser  = "table"             # required. table, lines, or json
+//	env     = ["LC_ALL=C"]        # optional. overlays the inherited environment
+//
+//	  [plan.table]                # required. the block this parser calls for
+//	  name      = "Name"
+//	  id        = "Id"
+//	  installed = "Version"
+//	  available = "Available"
+//
+//	[apply]                       # required. do it
+//	command = ["winget", "upgrade", "--all", "--silent"]
+//
+// Every field is documented on [Manifest] and on [Step]. The parser blocks are on
+// [TableConfig], [LinesConfig], and [JSONConfig].
+//
+// # What the schema will not let you write
+//
+// Every command is an array, and there is no field anywhere that takes a command
+// line as a string. That is the strongest form of the rule in
+// docs/ARCHITECTURE.md rather than a stylistic preference: no quoting is correct
+// on both cmd.exe and sh, and interpolating into a shell is an injection surface
+// in a file that sometimes runs elevated. A rule reviewers enforce gets broken
+// eventually; a schema with no string form cannot be.
+//
+// Nothing splices an update into an argv. Apply runs its command as written,
+// because every tool upall drives updates everything in one invocation and none
+// of them takes the list back — so a package name can never become an argument.
+//
+// There is no conditional, no loop, and no template. A provider that is almost
+// expressible will eventually tempt someone into adding the one field that would
+// close the gap, and that field is how a schema becomes a programming language
+// with no debugger, no type checking, and no tests. Write it in
+// internal/provider/native instead; ADR-0002 has the decision rule and that
+// package's doc.go has the bar.
+//
+// # Validation
+//
+// Strict, and loud. A manifest that loads is one the rest of the system can rely
+// on, which is what lets the adapter behind [Manifest.Provider] be as thin as it
+// is.
+//
+// Unknown fields are rejected from the decoder's own record of what it did not
+// consume, so the check cannot fall behind the schema. It catches more than
+// misspellings: parser under [detect] is refused, because only [plan] has one,
+// and a manifest should not be able to configure something that will never be
+// read.
+//
+// The parser is built during validation and thrown away. That turns an unknown
+// parser name, or a configuration block that maps nothing, into a load failure
+// naming the file — rather than a provider that reports no updates during a run
+// for a reason nobody can see. Silence is indistinguishable from good news, and
+// that is the failure mode worth spending a wasted construction to avoid.
+//
+// Failures are [ManifestError], carrying the file and the TOML path to the
+// problem. The reader is usually looking at a file they just wrote, and what
+// they want is the line.
+//
+// # What ships
+//
+// [Builtin] returns a registry of every provider upall ships. The manifests are
+// compiled in with go:embed rather than read from a directory, because upall
+// promises to be a downloaded binary that runs: a manifest read from disk at
+// startup would be one more thing to install, one more thing to go missing, and
+// — a manifest being arbitrary command execution by definition — one more thing
+// an attacker could put there. What is embedded cannot change without replacing
+// the binary. User-supplied overrides are a separate, off-by-default mechanism
+// and are not this.
+//
+// A built-in manifest that fails to load is an error rather than a provider
+// quietly dropped from the run. It is a bug in the binary, which a user cannot
+// fix and should never see.
+//
 // # The registry
 //
 // [Registry] is the set of providers a run can draw on, and the only thing that
