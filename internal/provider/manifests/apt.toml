@@ -1,0 +1,60 @@
+# apt, the package manager on Debian, Ubuntu, and everything downstream of them.
+
+id        = "apt"
+platforms = ["linux"]
+
+# apt-get upgrade writes to /var/lib/dpkg and installs files under /usr, so it
+# needs root. Planning does not: every command below runs unprivileged, and the
+# simulate is proven to work as a non-root user in apt_test.go.
+elevate = true
+
+[detect]
+# apt-get rather than dpkg, because a machine can have dpkg without apt, and it
+# is apt this provider drives.
+command = ["apt-get", "--version"]
+
+[plan]
+# apt-get -s, not `apt list --upgradable`.
+#
+# apt prints "apt does not have a stable CLI interface. Use with caution in
+# scripts." on every invocation, and upall is exactly the script it means.
+# apt-get is the stable interface, its simulate mode needs no root, and both
+# report the same set — so the only thing choosing apt would buy is a format its
+# own maintainers decline to promise.
+#
+# -s is a simulation and changes nothing. It is the flag that makes this command
+# safe to run before the user has confirmed anything.
+command = ["apt-get", "--simulate", "upgrade"]
+
+# LC_ALL=C is not cosmetic. apt translates its output, so on a French machine the
+# lines this parses come back in French and the provider silently reports that
+# nothing needs updating. Pinning the locale is what makes the pattern below a
+# statement about apt rather than about the machine's language.
+env = ["LC_ALL=C", "DEBIAN_FRONTEND=noninteractive"]
+
+parser = "lines"
+
+  # The simulate prints one line per package it would act on:
+  #
+  #   Inst libc6 [2.35-0ubuntu3.6] (2.35-0ubuntu3.14 Ubuntu:22.04/jammy-updates [amd64])
+  #
+  # Anchored on "Inst " so that the preamble — four lines of NOTE about this
+  # being a simulation, then the reading and calculating lines — cannot match.
+  # Conf lines are ignored on purpose: they are the same packages being
+  # configured, and counting them would double every update.
+  [plan.lines]
+  pattern = '^Inst (?P<id>\S+) \[(?P<installed>[^\]]+)\] \((?P<available>\S+)'
+
+[apply]
+# upgrade rather than dist-upgrade. dist-upgrade may remove packages to resolve
+# dependencies, and a tool whose promise is that nothing surprising happens does
+# not remove software the user did not mention. Packages held back by that
+# difference are left held back, which is apt's own default and visible in its
+# output.
+command = ["apt-get", "upgrade", "--yes"]
+
+# DEBIAN_FRONTEND=noninteractive stops debconf opening a dialog, which upall
+# gives no standard input to answer. NEEDRESTART_MODE=a lets needrestart restart
+# services itself instead of asking; without it an upgrade on Ubuntu stops on a
+# full-screen prompt nobody can see.
+env = ["LC_ALL=C", "DEBIAN_FRONTEND=noninteractive", "NEEDRESTART_MODE=a"]
