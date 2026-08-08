@@ -236,7 +236,10 @@ end to end on each OS.
       That is the difference between proving the adapter handles `exec.ErrNotFound` and
       proving `ErrNotFound` is what a missing tool actually produces. No package manager
       is invoked, because there is none there to invoke.
-- [ ] `internal/provider/doc.go` documents the manifest schema and parser catalogue.
+- [x] `internal/provider/doc.go` documents the manifest schema and parser catalogue.
+      Both, plus what the schema deliberately cannot express and why, which is the part a
+      future contributor needs most: the pressure is always toward adding the one field
+      that would let an almost-expressible provider stay declarative.
 
 ---
 
