@@ -209,8 +209,13 @@ end to end on each OS.
       `Undecoded`, so `parser` under `[detect]` is rejected too: only `[plan]` has one,
       and a manifest cannot configure something that will never be read.
 - [ ] `winget` works end to end on Windows and `apt` on Linux: detect, plan, apply.
-- [ ] `Detect` returns false rather than an error when the tool is absent, proven by a
-      test on the OS where the tool does not exist.
+- [x] `Detect` returns false rather than an error when the tool is absent, proven by a
+      test on the OS where the tool does not exist. `winget_absent_test.go` is
+      `//go:build !windows` and `apt_absent_test.go` is `//go:build !linux`, so each runs
+      only where its tool cannot be, and each uses the **real** runner rather than a fake.
+      That is the difference between proving the adapter handles `exec.ErrNotFound` and
+      proving `ErrNotFound` is what a missing tool actually produces. No package manager
+      is invoked, because there is none there to invoke.
 - [ ] `internal/provider/doc.go` documents the manifest schema and parser catalogue.
 
 ---

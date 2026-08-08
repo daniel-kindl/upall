@@ -1,0 +1,59 @@
+# winget, the Windows Package Manager.
+#
+# Shipped with Windows 10 1809 and later as the App Installer, so it is the one
+# provider most Windows machines already have.
+
+id        = "winget"
+platforms = ["windows"]
+
+# winget elevates itself, per package, when a package needs it. Declaring true
+# here would elevate the whole invocation instead, which is the opposite of what
+# ARCHITECTURE asks for — upall runs unprivileged by default and elevates as
+# narrowly as it can — and it would also change the install scope winget picks
+# for user-scoped packages. If M7 or M8 finds that machine-scoped packages fail
+# an unattended run, this is the line to revisit, with that evidence.
+elevate = false
+
+[detect]
+# --version is the cheapest question that distinguishes installed from absent,
+# and it touches no source and no network.
+command = ["winget", "--version"]
+
+[plan]
+# --accept-source-agreements because winget asks for agreement on first use of a
+# source, and upall gives its commands no standard input, so an unaccepted
+# agreement is a command that fails rather than one that waits.
+#
+# --disable-interactivity for the same reason, one level up: it tells winget not
+# to try to ask anything at all.
+command = [
+  "winget", "upgrade",
+  "--accept-source-agreements",
+  "--disable-interactivity",
+]
+parser = "table"
+
+  # Column headings as winget 1.29 prints them. There is a fifth column,
+  # Source, which upall has nowhere to put; the table parser takes the headings
+  # it is given and ignores the rest.
+  [plan.table]
+  name      = "Name"
+  id        = "Id"
+  installed = "Version"
+  available = "Available"
+
+[apply]
+# --all upgrades everything winget listed, which is what was planned and
+# confirmed. There is deliberately no per-package form: nothing splices an
+# update's ID into this argv, so a package name cannot become an argument.
+#
+# --accept-package-agreements is the second of the two agreements, asked per
+# package rather than per source, and needed for the same reason as the first.
+command = [
+  "winget", "upgrade",
+  "--all",
+  "--silent",
+  "--accept-source-agreements",
+  "--accept-package-agreements",
+  "--disable-interactivity",
+]
