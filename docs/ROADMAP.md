@@ -185,9 +185,15 @@ end to end on each OS.
       cannot reorder a plan. `Registry.Add` refuses a duplicate ID and an ID outside
       lowercase-digits-hyphen, because an ID is a config key, an `--only` value, and a
       JSON field, all public under semver.
-- [ ] Native providers implement `core.Provider` directly.
-- [ ] TOML manifests are loaded into an adapter satisfying the same interface, and a
-      test asserts the registry cannot distinguish the two.
+- [x] Native providers implement `core.Provider` directly. `internal/provider/native` is
+      where they go, and its `doc.go` states the bar for writing one. It is empty at M4:
+      the two that clear the bar are Windows Update at M8 and Docker at M9, and inventing
+      a native provider before one is needed would be inventing the wrong one.
+- [x] TOML manifests are loaded into an adapter satisfying the same interface, and a
+      test asserts the registry cannot distinguish the two. The test registers a manifest
+      adapter and a hand-written Go provider and runs identical assertions against both,
+      including detect-absent, detect-broken, and cancellation, so they are proven
+      interchangeable in behavior and not only in type.
 - [ ] Manifests are embedded with `go:embed`, so the binary needs no files on disk.
 - [x] At least three named output parsers exist (table, JSON, line-per-item), each
       tested against captured real-world fixture output. They are `table`, `json`, and
