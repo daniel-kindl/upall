@@ -6,6 +6,32 @@
 // named parser, and a few need real code and live in internal/provider/native.
 // Nothing downstream can tell them apart.
 //
+// # The registry
+//
+// [Registry] is the set of providers a run can draw on, and the only thing that
+// knows they all exist. It answers the two questions asked before a run does any
+// work: [Registry.Lookup] resolves an ID, and [Registry.For] filters to the
+// providers that could run on this platform.
+//
+// Both are cheap and neither touches the machine. Filtering asks what a provider
+// declared, not what is installed — that is
+// [github.com/daniel-kindl/upall/internal/core.Provider].Detect's question, one
+// subprocess later — so a provider surviving the filter and then reporting
+// itself absent is the ordinary case.
+//
+// Providers come out ordered by ID, and that is a contract rather than an
+// implementation detail. Registration order is whatever the embedded manifests
+// were walked in, so depending on it would let renaming a file reorder every
+// plan. It is not an apply order: scheduling apply is internal/pipeline's, under
+// the concurrency bound documented there.
+//
+// An ID is lowercase letters, digits, and internal hyphens, and [Registry.Add]
+// refuses anything else. The set is narrower than it needs to be on purpose,
+// because an ID is a TOML key, an --only value, and a JSON output field, all
+// public under semver — one that shipped with a capital or a space would have to
+// keep it. A duplicate ID is refused for a different reason: two providers
+// answering to one name means --only picks whichever won a race.
+//
 // # The parser catalogue
 //
 // A [Parser] turns what a command printed into
